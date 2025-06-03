@@ -16,6 +16,7 @@ from sqlalchemy import func, cast, Date
 import requests
 import websockets
 import textwrap
+from .printer_manager import printer_manager
 
 # Cấu hình logging
 logger = logging.getLogger(__name__)
@@ -159,75 +160,52 @@ async def get_orders(
     db: Session = Depends(get_db)
 ):
     try:
-        logger.info(f"Fetching orders with skip={skip}, limit={limit}, date={date}")
-        
-        query = db.query(
-            Order.id,
-            Order.table_id,
-            Order.staff_id,
-            Order.shift_id,
-            Order.status,
-            Order.total_amount,
-            Order.note,
-            Order.order_code,
-            Order.payment_status,
-            Order.time_in,
-            Order.time_out
-        )
+        logger.info(f"=== BẮT ĐẦU GET ORDERS ===")
+        logger.info(f"Params: skip={skip}, limit={limit}, date={date}")
+
+        # Tạo base query - lấy tất cả orders không phân biệt trạng thái
+        query = db.query(Order)
+        logger.info("Base query created without any status filter")
 
         # Thêm điều kiện filter theo ngày nếu có
         if date:
             try:
                 target_date = datetime.strptime(date, "%Y-%m-%d").date()
-                logger.info(f"Filtering orders for date: {date}")
+                start_dt = datetime.combine(target_date, time(0, 0, 0))
+                end_dt = datetime.combine(target_date, time(23, 59, 59))
                 
-                # Debug: Kiểm tra dữ liệu trong bảng shifts
-                shifts = db.query(Shift).all()
-                logger.info("All shifts in database:")
-                for shift in shifts:
-                    logger.info(f"Shift ID: {shift.id}, Open Time: {shift.open_time}")
-                
-                # Debug: Kiểm tra dữ liệu trong bảng orders
-                orders = db.query(Order).all()
-                logger.info("All orders in database:")
-                for order in orders:
-                    logger.info(f"Order ID: {order.id}, Shift ID: {order.shift_id}, Time In: {order.time_in}")
-                
-                # Thử filter theo ngày mở của shift
-                query = db.query(
-                    Order.id,
-                    Order.table_id,
-                    Order.staff_id,
-                    Order.shift_id,
-                    Order.status,
-                    Order.total_amount,
-                    Order.note,
-                    Order.order_code,
-                    Order.payment_status,
-                    Order.time_in,
-                    Order.time_out
-                ).join(
-                    Shift,
-                    Order.shift_id == Shift.id
-                ).filter(
-                    func.date(Shift.open_time) == target_date
+                # Lấy tất cả orders trong ngày, không phân biệt ca
+                query = query.filter(
+                    Order.time_in >= start_dt,
+                    Order.time_in <= end_dt
                 )
                 
-                # Log SQL query
-                logger.info(f"SQL Query: {query.statement.compile(compile_kwargs={'literal_binds': True})}")
+                logger.info(f"Added date filter: {start_dt} to {end_dt}")
                 
-                # Log kết quả
-                results = query.all()
-                logger.info(f"Found {len(results)} orders for date {date}")
-                for result in results:
-                    logger.info(f"Order ID: {result.id}, Shift ID: {result.shift_id}, Time In: {result.time_in}")
+                # Log số lượng orders theo từng ca
+                morning_orders = query.filter(Order.shift_id == 15).count()  # Ca sáng
+                afternoon_orders = query.filter(Order.shift_id == 16).count()  # Ca chiều
+                logger.info(f"Morning shift orders: {morning_orders}")
+                logger.info(f"Afternoon shift orders: {afternoon_orders}")
                 
             except Exception as e:
-                logger.error(f"Error parsing date {date}: {str(e)}")
+                logger.error(f"Invalid date format: {str(e)}")
                 raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
 
-        orders = query.offset(skip).limit(limit).all()
-        logger.info(f"Found {len(orders)} orders")
+        # Log SQL query
+        logger.info(f"SQL Query: {query.statement.compile(compile_kwargs={'literal_binds': True})}")
+
+        # Lấy tổng số orders trước khi phân trang
+        total_orders = query.count()
+        logger.info(f"Total orders found before pagination: {total_orders}")
+
+        # Lấy danh sách orders với phân trang - sắp xếp theo thời gian mới nhất
+        orders = query.order_by(Order.time_in.desc()).offset(skip).limit(limit).all()
+        logger.info(f"Orders after pagination: {len(orders)}")
+        
+        # Log chi tiết từng order
+        for order in orders:
+            logger.info(f"Order {order.id}: status={order.status}, payment_status={order.payment_status}, time_in={order.time_in}, shift_id={order.shift_id}")
         
         result = []
         current_time = get_vietnam_time()
@@ -260,16 +238,20 @@ async def get_orders(
                     }
                     order_items.append(item_dict)
                 
+                # Chuyển đổi status thành string và đảm bảo không bị None
+                status = str(order.status) if order.status is not None else "pending"
+                payment_status = order.payment_status if order.payment_status is not None else "unpaid"
+                
                 order_dict = {
                     "id": order.id,
                     "table_id": order.table_id,
                     "staff_id": order.staff_id,
                     "shift_id": order.shift_id,
-                    "status": order.status,
+                    "status": status,
                     "total_amount": order.total_amount,
                     "note": order.note,
                     "order_code": order.order_code,
-                    "payment_status": order.payment_status,
+                    "payment_status": payment_status,
                     "time_in": ensure_timezone(order.time_in) if order.time_in else current_time,
                     "time_out": ensure_timezone(order.time_out) if order.time_out else None,
                     "items": order_items if order_items else [{
@@ -284,14 +266,14 @@ async def get_orders(
                     }]
                 }
                 
-                logger.info(f"Processed order {order.id}")
                 result.append(order_dict)
+                logger.info(f"Successfully processed order {order.id} with status={status}, payment_status={payment_status}")
                 
             except Exception as e:
                 logger.error(f"Error processing order {order.id}: {str(e)}")
                 continue
         
-        logger.info(f"Successfully processed {len(result)} orders")
+        logger.info(f"=== KẾT THÚC GET ORDERS - Trả về {len(result)} orders ===")
         return result
 
     except Exception as e:
@@ -445,13 +427,10 @@ async def create_order(order: OrderCreate, db: Session = Depends(get_db)):
             }
         })
 
-        # Gửi bill tới POSPrinter
-        printer_ips = ["192.168.99.12",]
-        table = db.query(Table).filter(Table.id == response['table_id']).first()
-        table_name = table.name if table else f"Bàn {response['table_id']}"
+        # Gửi bill tới tất cả các máy in đang kết nối
         bill_lines = [
             {"text": "PHIẾU LÀM ĐỒ", "fontSize": 14, "fontName": "Arial Black", "bold": True, "align": "center"},
-            {"text": f"Bàn: {table_name}", "fontSize": 10, "bold": False, "align": "left"},
+            {"text": f"Bàn: {response['table_id']}", "fontSize": 10, "bold": False, "align": "left"},
             {"text": "--------------------------------", "fontSize": 16, "bold": False, "align": "left"},
         ]
         for item in response["items"]:
@@ -461,35 +440,23 @@ async def create_order(order: OrderCreate, db: Session = Depends(get_db)):
                 bill_lines.append({"text": f"Ghi chú: {item['note']}", "fontSize": 14, "bold": False, "align": "left"})
         bill_lines.append({"text": "--------------------------------", "fontSize": 16, "bold": False, "align": "left"})
 
-        async def send_to_printer():
-            for ip in printer_ips:
-                retry_count = 0
-                max_retries = 3
-                while retry_count < max_retries:
-                    try:
-                        response = await asyncio.get_event_loop().run_in_executor(
-                            None,
-                            lambda: requests.post(
-                                f"http://{ip}:8080/print/",
-                                data=json.dumps(bill_lines).encode("utf-8"),
-                                headers={"Content-Type": "application/json; charset=utf-8"},
-                                timeout=5
-                            )
-                        )
-                        if response.status_code == 200:
-                            logger.info(f"Đã gửi bill tới POSPrinter {ip}")
-                            break
-                        else:
-                            logger.error(f"Lỗi gửi bill tới POSPrinter {ip}: HTTP {response.status_code}")
-                            retry_count += 1
-                    except Exception as e:
-                        retry_count += 1
-                        if retry_count == max_retries:
-                            logger.error(f"Lỗi gửi bill tới POSPrinter {ip} sau {max_retries} lần thử: {str(e)}")
-                        else:
-                            logger.warning(f"Lỗi gửi bill tới POSPrinter {ip}, thử lại lần {retry_count}/{max_retries}: {str(e)}")
-                            await asyncio.sleep(1)
-        asyncio.create_task(send_to_printer())
+        # Gửi tới tất cả các máy in đang kết nối
+        success = False
+        for printer_id in printer_manager.active_printers.keys():
+            try:
+                result = await printer_manager.send_to_printer(printer_id, {
+                    "type": "print",
+                    "data": bill_lines
+                })
+                if result:
+                    success = True
+                    logger.info(f"Đã gửi dữ liệu tới printer {printer_id}")
+            except Exception as e:
+                logger.error(f"Lỗi khi gửi dữ liệu tới printer {printer_id}: {str(e)}")
+        
+        if not success:
+            logger.error("Không thể gửi dữ liệu tới bất kỳ máy in nào")
+            # Không raise exception vì không muốn ảnh hưởng đến luồng chính
 
         end_time = get_vietnam_time()
         logger.info(f"Order creation completed in {(end_time - start_time).total_seconds()} seconds")
@@ -690,13 +657,10 @@ async def update_order(order_id: int, order: OrderUpdate, db: Session = Depends(
             }
         })
 
-        # Gửi bill tới POSPrinter
-        printer_ips = ["192.168.99.12",]
-        table = db.query(Table).filter(Table.id == current_order.table_id).first()
-        table_name = table.name if table else f"Bàn {current_order.table_id}"
+        # Gửi bill tới tất cả các máy in đang kết nối
         bill_lines = [
             {"text": "PHIẾU LÀM ĐỒ", "fontSize": 14, "fontName": "Arial Black", "bold": True, "align": "center"},
-            {"text": f"Bàn: {table_name}", "fontSize": 10, "bold": False, "align": "left"},
+            {"text": f"Bàn: {response_dict['table_id']}", "fontSize": 10, "bold": False, "align": "left"},
             {"text": "--------------------------------", "fontSize": 16, "bold": False, "align": "left"},
         ]
         # So sánh món mới với món cũ, chỉ in phần tăng thêm
@@ -719,35 +683,23 @@ async def update_order(order_id: int, order: OrderUpdate, db: Session = Depends(
                     bill_lines.append({"text": f"Ghi chú: {note}", "fontSize": 14, "bold": False, "align": "left"})
         bill_lines.append({"text": "--------------------------------", "fontSize": 16, "bold": False, "align": "left"})
 
-        async def send_to_printer():
-            for ip in printer_ips:
-                retry_count = 0
-                max_retries = 3
-                while retry_count < max_retries:
-                    try:
-                        response = await asyncio.get_event_loop().run_in_executor(
-                            None,
-                            lambda: requests.post(
-                                f"http://{ip}:8080/print/",
-                                data=json.dumps(bill_lines).encode("utf-8"),
-                                headers={"Content-Type": "application/json; charset=utf-8"},
-                                timeout=5
-                            )
-                        )
-                        if response.status_code == 200:
-                            logger.info(f"Đã gửi bill tới POSPrinter {ip}")
-                            break
-                        else:
-                            logger.error(f"Lỗi gửi bill tới POSPrinter {ip}: HTTP {response.status_code}")
-                            retry_count += 1
-                    except Exception as e:
-                        retry_count += 1
-                        if retry_count == max_retries:
-                            logger.error(f"Lỗi gửi bill tới POSPrinter {ip} sau {max_retries} lần thử: {str(e)}")
-                        else:
-                            logger.warning(f"Lỗi gửi bill tới POSPrinter {ip}, thử lại lần {retry_count}/{max_retries}: {str(e)}")
-                            await asyncio.sleep(1)
-        asyncio.create_task(send_to_printer())
+        # Gửi tới tất cả các máy in đang kết nối
+        success = False
+        for printer_id in printer_manager.active_printers.keys():
+            try:
+                result = await printer_manager.send_to_printer(printer_id, {
+                    "type": "print",
+                    "data": bill_lines
+                })
+                if result:
+                    success = True
+                    logger.info(f"Đã gửi dữ liệu tới printer {printer_id}")
+            except Exception as e:
+                logger.error(f"Lỗi khi gửi dữ liệu tới printer {printer_id}: {str(e)}")
+        
+        if not success:
+            logger.error("Không thể gửi dữ liệu tới bất kỳ máy in nào")
+            # Không raise exception vì không muốn ảnh hưởng đến luồng chính
 
         logger.info(f"{'='*50}")
         logger.info("KẾT THÚC CẬP NHẬT ORDER")
@@ -870,12 +822,10 @@ async def transfer_table(
         })
 
         # Gửi bill tới POSPrinter
-        printer_ips = ["192.168.99.12",]
-        table = db.query(Table).filter(Table.id == current_order.table_id).first()
-        table_name = table.name if table else f"Bàn {current_order.table_id}"
+        printer_id = "192.168.99.26"  # Sử dụng IP làm printer_id
         bill_lines = [
             {"text": "PHIẾU LÀM ĐỒ", "fontSize": 14, "fontName": "Arial Black", "bold": True, "align": "center"},
-            {"text": f"Bàn: {table_name}", "fontSize": 10, "bold": False, "align": "left"},
+            {"text": f"Bàn: {response_dict['table_id']}", "fontSize": 10, "bold": False, "align": "left"},
             {"text": "--------------------------------", "fontSize": 16, "bold": False, "align": "left"},
         ]
         for item in order_items:
@@ -885,35 +835,14 @@ async def transfer_table(
                 bill_lines.append({"text": f"Ghi chú: {item['note']}", "fontSize": 14, "bold": False, "align": "left"})
         bill_lines.append({"text": "--------------------------------", "fontSize": 16, "bold": False, "align": "left"})
 
-        async def send_to_printer():
-            for ip in printer_ips:
-                retry_count = 0
-                max_retries = 3
-                while retry_count < max_retries:
-                    try:
-                        response = await asyncio.get_event_loop().run_in_executor(
-                            None,
-                            lambda: requests.post(
-                                f"http://{ip}:8080/print/",
-                                data=json.dumps(bill_lines).encode("utf-8"),
-                                headers={"Content-Type": "application/json; charset=utf-8"},
-                                timeout=5
-                            )
-                        )
-                        if response.status_code == 200:
-                            logger.info(f"Đã gửi bill tới POSPrinter {ip}")
-                            break
-                        else:
-                            logger.error(f"Lỗi gửi bill tới POSPrinter {ip}: HTTP {response.status_code}")
-                            retry_count += 1
-                    except Exception as e:
-                        retry_count += 1
-                        if retry_count == max_retries:
-                            logger.error(f"Lỗi gửi bill tới POSPrinter {ip} sau {max_retries} lần thử: {str(e)}")
-                        else:
-                            logger.warning(f"Lỗi gửi bill tới POSPrinter {ip}, thử lại lần {retry_count}/{max_retries}: {str(e)}")
-                            await asyncio.sleep(1)
-        asyncio.create_task(send_to_printer())
+        success = await printer_manager.send_to_printer(printer_id, {
+            "type": "print",
+            "data": bill_lines
+        })
+        
+        if not success:
+            logger.error(f"Không thể gửi dữ liệu tới printer {printer_id}")
+            # Không raise exception vì không muốn ảnh hưởng đến luồng chính
 
         logger.info(f"{'='*50}")
         logger.info("KẾT THÚC CHUYỂN BÀN")
@@ -1010,4 +939,77 @@ def get_recent_orders(db: Session = Depends(get_db)):
             "total_amount": float(order.total_amount) if order.total_amount is not None else 0.0,
             "status": str(order.status) if order.status is not None else ""
         })
-    return result 
+    return result
+
+@router.post("/print-order")
+async def print_order(order_id: int, db: Session = Depends(get_db)):
+    try:
+        # Lấy thông tin order
+        order = db.query(Order).filter(Order.id == order_id).first()
+        if not order:
+            return {"error": "Không tìm thấy order"}
+
+        # Lấy thông tin bàn
+        table = db.query(Table).filter(Table.id == order.table_id).first()
+        if not table:
+            return {"error": "Không tìm thấy thông tin bàn"}
+
+        # Lấy thông tin ca
+        shift = db.query(Shift).filter(Shift.id == order.shift_id).first()
+        if not shift:
+            return {"error": "Không tìm thấy thông tin ca"}
+
+        # Lấy danh sách items
+        items = db.query(OrderItem, MenuItem).join(
+            MenuItem, OrderItem.menu_item_id == MenuItem.id
+        ).filter(OrderItem.order_id == order_id).all()
+
+        # Format bill
+        bill_lines = [
+            {"text": "HÓA ĐƠN", "fontSize": 14, "fontName": "Arial Black", "bold": True, "align": "center"},
+            {"text": f"Bàn: {table.name}", "fontSize": 10, "bold": False, "align": "left"},
+            {"text": f"Ca: {shift.shift_type}", "fontSize": 10, "bold": False, "align": "left"},
+            {"text": f"Thời gian: {order.time_in.strftime('%d/%m/%Y %H:%M')}", "fontSize": 10, "bold": False, "align": "left"},
+            {"text": "--------------------------------", "fontSize": 12, "bold": False, "align": "left"},
+        ]
+
+        # Thêm items
+        for item, menu_item in items:
+            bill_lines.append({
+                "text": f"{menu_item.name} x{item.quantity} = {item.total_price:,.0f} ₫",
+                "fontSize": 12,
+                "bold": False,
+                "align": "left"
+            })
+
+        # Thêm tổng tiền
+        bill_lines.extend([
+            {"text": "--------------------------------", "fontSize": 12, "bold": False, "align": "left"},
+            {"text": f"Tổng tiền: {order.total_amount:,.0f} ₫", "fontSize": 12, "bold": True, "align": "left"},
+            {"text": "--------------------------------", "fontSize": 12, "bold": False, "align": "left"},
+            {"text": "Cảm ơn quý khách!", "fontSize": 12, "bold": False, "align": "center"},
+        ])
+
+        # Gửi tới tất cả các máy in đang kết nối
+        success = False
+        for printer_id in printer_manager.active_printers.keys():
+            try:
+                result = await printer_manager.send_to_printer(printer_id, {
+                    "type": "print",
+                    "data": bill_lines
+                })
+                if result:
+                    success = True
+                    logger.info(f"Đã gửi dữ liệu tới printer {printer_id}")
+            except Exception as e:
+                logger.error(f"Lỗi khi gửi dữ liệu tới printer {printer_id}: {str(e)}")
+        
+        if not success:
+            logger.error("Không thể gửi dữ liệu tới bất kỳ máy in nào")
+            return {"error": "Không thể gửi dữ liệu tới máy in. Vui lòng kiểm tra kết nối máy in."}
+            
+        return {"success": True, "message": "Đã gửi hóa đơn tới máy in"}
+
+    except Exception as e:
+        logger.error(f"Lỗi khi in hóa đơn: {str(e)}")
+        return {"error": f"Lỗi khi in hóa đơn: {str(e)}"} 

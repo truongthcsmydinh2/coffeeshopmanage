@@ -28,6 +28,8 @@ import logging
 import sys
 import requests
 from app.api.v1.endpoints.dashboard import router as dashboard_router
+from starlette.websockets import WebSocketState
+from app.api.v1.endpoints.printer_manager import printer_manager
 
 load_dotenv()
 
@@ -105,12 +107,22 @@ manager = ConnectionManager()
 # Cấu hình CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://192.168.99.166:3001"],  # Chỉ cho phép truy cập từ IP local
+    allow_origins=["http://192.168.99.166:3000", "http://192.168.99.166:3001", "http://amnhactechcf.ddns.net:3000", "http://amnhactechcf.ddns.net:3001"],  # Cho phép tất cả các origin
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-    expose_headers=["*"]
+    allow_methods=["*"],  # Cho phép tất cả các method
+    allow_headers=["*"],  # Cho phép tất cả các header
+    expose_headers=["*"]  # Cho phép expose tất cả các header
 )
+
+# Thêm middleware cho WebSocket
+@app.middleware("http")
+async def websocket_cors_middleware(request, call_next):
+    response = await call_next(request)
+    if request.url.path.startswith("/ws/"):
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = "*"
+        response.headers["Access-Control-Allow-Headers"] = "*"
+    return response
 
 # Include routers
 app.include_router(staff_router, prefix="/api/staff", tags=["staff"])
@@ -123,6 +135,66 @@ app.include_router(orders_router, prefix="/api/orders", tags=["orders"])
 app.include_router(api_router, prefix=settings.API_V1_STR)
 app.include_router(cancelled_items.router)
 app.include_router(dashboard_router, prefix="/api/v1/endpoints/dashboard", tags=["dashboard"])
+
+# Thêm WebSocket endpoint
+@app.websocket("/ws/printer")
+async def printer_websocket_endpoint(websocket: WebSocket):
+    printer_id = str(uuid.uuid4())
+    try:
+        # Accept connection trước
+        await websocket.accept()
+        
+        # Gửi thông tin kết nối thành công
+        await websocket.send_json({
+            "type": "connection",
+            "data": {
+                "status": "connected",
+                "printer_id": printer_id,
+                "timestamp": datetime.now().isoformat()
+            }
+        })
+        
+        # Thêm vào manager sau khi đã accept
+        success = await printer_manager.connect(printer_id, websocket)
+        if not success:
+            logger.error(f"Failed to add printer {printer_id} to manager")
+            await websocket.close()
+            return
+        
+        while True:
+            try:
+                data = await websocket.receive_text()
+                try:
+                    message = json.loads(data)
+                    logger.info(f"Received message from printer {printer_id}: {message}")
+                    
+                    if message.get("type") == "ping":
+                        await websocket.send_json({
+                            "type": "pong",
+                            "data": {
+                                "timestamp": datetime.now().isoformat()
+                            }
+                        })
+                    elif message.get("type") == "printer_info":
+                        printer_info = message.get("data", {})
+                        logger.info(f"Printer {printer_id} info: {printer_info}")
+                        
+                except json.JSONDecodeError:
+                    logger.error(f"Invalid JSON from printer {printer_id}: {data}")
+                    
+            except WebSocketDisconnect:
+                logger.info(f"Printer {printer_id} disconnected")
+                break
+            except Exception as e:
+                logger.error(f"Error receiving message from printer {printer_id}: {str(e)}")
+                break
+    except Exception as e:
+        logger.error(f"WebSocket error for printer {printer_id}: {str(e)}")
+    finally:
+        try:
+            printer_manager.disconnect(printer_id)
+        except Exception as e:
+            logger.error(f"Error disconnecting printer {printer_id}: {str(e)}")
 
 # Menu Group Endpoints
 @app.post("/api/menu-groups/", response_model=schemas.MenuGroup)

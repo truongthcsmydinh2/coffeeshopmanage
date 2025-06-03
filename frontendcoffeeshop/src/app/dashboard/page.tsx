@@ -48,7 +48,7 @@ export default function DashboardPage() {
     // Fetch thống kê chung
     setLoadingStats(true)
     setError(null)
-    fetch(`http://192.168.99.166:8000/api/v1/endpoints/dashboard/summary?date=${selectedDate}`)
+    fetch(`http://amnhactechcf.ddns.net:8000/api/v1/endpoints/dashboard/summary?date=${selectedDate}`)
       .then(res => {
         if (!res.ok) throw new Error('Lỗi API')
         return res.json()
@@ -63,7 +63,7 @@ export default function DashboardPage() {
     // Fetch thống kê thuốc lá
     setLoadingCigarettes(true)
     setErrorCigarettes(null)
-    fetch(`http://192.168.99.166:8000/api/v1/endpoints/dashboard/cigarettes?date=${selectedDate}`)
+    fetch(`http://amnhactechcf.ddns.net:8000/api/v1/endpoints/dashboard/cigarettes?date=${selectedDate}`)
       .then(res => {
         if (!res.ok) throw new Error('Lỗi API')
         return res.json()
@@ -78,7 +78,7 @@ export default function DashboardPage() {
 
   const handlePrintShiftReport = async (shift: string) => {
     try {
-      const response = await fetch(`http://192.168.99.166:8000/api/v1/endpoints/dashboard/shift-report?date=${selectedDate}&shift=${shift}`)
+      const response = await fetch(`http://amnhactechcf.ddns.net:8000/api/v1/endpoints/dashboard/shift-report?date=${selectedDate}&shift=${shift}`)
       if (!response.ok) throw new Error('Lỗi khi lấy dữ liệu')
       const data = await response.json()
 

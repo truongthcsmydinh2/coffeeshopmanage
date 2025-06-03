@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query, Body
+from fastapi import APIRouter, Depends, Query, Body, WebSocket, WebSocketDisconnect
 from sqlalchemy.orm import Session
 from app.database.database import get_db
 from app.database.models import Order, Shift, OrderItem, MenuItem, Table
@@ -9,6 +9,8 @@ import requests
 import json
 import asyncio
 import logging
+import uuid
+from .printer_manager import printer_manager
 
 router = APIRouter()
 
@@ -170,6 +172,59 @@ def shift_report(date: str = Query(..., description="YYYY-MM-DD"), shift: str = 
 
     return result
 
+@router.websocket("/ws/printer")
+async def printer_websocket_endpoint(websocket: WebSocket):
+    printer_id = str(uuid.uuid4())
+    try:
+        # Chấp nhận kết nối trước khi thêm vào manager
+        await websocket.accept()
+        
+        # Gửi thông tin kết nối thành công
+        await websocket.send_json({
+            "type": "connection",
+            "data": {
+                "status": "connected",
+                "printer_id": printer_id,
+                "timestamp": datetime.now().isoformat()
+            }
+        })
+        
+        # Thêm vào manager sau khi đã kết nối thành công
+        await printer_manager.connect(printer_id, websocket)
+        
+        while True:
+            try:
+                data = await websocket.receive_text()
+                try:
+                    message = json.loads(data)
+                    logger.info(f"Received message from printer {printer_id}: {message}")
+                    
+                    if message.get("type") == "ping":
+                        await websocket.send_json({
+                            "type": "pong",
+                            "data": {
+                                "timestamp": datetime.now().isoformat()
+                            }
+                        })
+                    elif message.get("type") == "printer_info":
+                        # Cập nhật thông tin printer
+                        printer_info = message.get("data", {})
+                        logger.info(f"Printer {printer_id} info: {printer_info}")
+                        
+                except json.JSONDecodeError:
+                    logger.error(f"Invalid JSON from printer {printer_id}: {data}")
+                    
+            except WebSocketDisconnect:
+                logger.info(f"Printer {printer_id} disconnected")
+                break
+            except Exception as e:
+                logger.error(f"Error receiving message from printer {printer_id}: {str(e)}")
+                break
+    except Exception as e:
+        logger.error(f"WebSocket error for printer {printer_id}: {str(e)}")
+    finally:
+        printer_manager.disconnect(printer_id)
+
 @router.post("/print-shift-report")
 async def print_shift_report(
     date: str = Body(...),
@@ -215,33 +270,22 @@ async def print_shift_report(
     summary_lines.append({"text": "Người lập biên bản", "fontSize": 12, "bold": False, "align": "center"})
     summary_lines.append({"text": "(Ký, ghi rõ họ tên)", "fontSize": 12, "bold": False, "align": "center"})
 
-    # Gửi tới máy in
-    printer_ips = ["192.168.99.12",]
-    max_retries = 3
-    for ip in printer_ips:
-        retry_count = 0
-        while retry_count < max_retries:
-            try:
-                response = await asyncio.get_event_loop().run_in_executor(
-                    None,
-                    lambda: requests.post(
-                        f"http://{ip}:8080/print/",
-                        data=json.dumps(summary_lines).encode("utf-8"),
-                        headers={"Content-Type": "application/json; charset=utf-8"},
-                        timeout=5
-                    )
-                )
-                if response.status_code == 200:
-                    logger.info(f"Đã gửi tổng kết ca tới POSPrinter {ip}")
-                    break
-                else:
-                    logger.error(f"Lỗi gửi tổng kết ca tới POSPrinter {ip}: HTTP {response.status_code}")
-                    retry_count += 1
-            except Exception as e:
-                retry_count += 1
-                if retry_count == max_retries:
-                    logger.error(f"Lỗi gửi tổng kết ca tới POSPrinter {ip} sau {max_retries} lần thử: {str(e)}")
-                else:
-                    logger.warning(f"Lỗi gửi tổng kết ca tới POSPrinter {ip}, thử lại lần {retry_count}/{max_retries}: {str(e)}")
-                    await asyncio.sleep(1)
+    # Gửi tới tất cả các máy in đang kết nối
+    success = False
+    for printer_id in printer_manager.active_printers.keys():
+        try:
+            result = await printer_manager.send_to_printer(printer_id, {
+                "type": "print",
+                "data": summary_lines
+            })
+            if result:
+                success = True
+                logger.info(f"Đã gửi dữ liệu tới printer {printer_id}")
+        except Exception as e:
+            logger.error(f"Lỗi khi gửi dữ liệu tới printer {printer_id}: {str(e)}")
+    
+    if not success:
+        logger.error("Không thể gửi dữ liệu tới bất kỳ máy in nào")
+        return {"error": "Không thể gửi dữ liệu tới máy in. Vui lòng kiểm tra kết nối máy in."}
+        
     return {"success": True, "message": "Đã gửi biên bản đóng ca tới máy in"} 
