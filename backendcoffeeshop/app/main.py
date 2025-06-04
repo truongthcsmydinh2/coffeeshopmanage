@@ -107,11 +107,11 @@ manager = ConnectionManager()
 # Cấu hình CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://192.168.99.166:3000", "http://192.168.99.166:3001", "http://amnhactechcf.ddns.net:3000", "http://amnhactechcf.ddns.net:3001"],  # Cho phép tất cả các origin
+    allow_origins=["http://192.168.99.166:3000", "http://192.168.99.166:3001", "http://amnhactechcf.ddns.net:3000", "http://amnhactechcf.ddns.net:3001"],
     allow_credentials=True,
-    allow_methods=["*"],  # Cho phép tất cả các method
-    allow_headers=["*"],  # Cho phép tất cả các header
-    expose_headers=["*"]  # Cho phép expose tất cả các header
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["*"]
 )
 
 # Thêm middleware cho WebSocket
@@ -124,17 +124,17 @@ async def websocket_cors_middleware(request, call_next):
         response.headers["Access-Control-Allow-Headers"] = "*"
     return response
 
-# Include routers
+# Đăng ký tất cả các router
+app.include_router(api_router, prefix="/api/v1")
+app.include_router(orders_router, prefix="/api/orders", tags=["orders"])
 app.include_router(staff_router, prefix="/api/staff", tags=["staff"])
 app.include_router(staff_by_role_router, prefix="/api/staff/by-role", tags=["staff"])
 app.include_router(shifts_current_router, prefix="/api/shifts", tags=["shifts"])
 app.include_router(shifts_create_router, prefix="/api/shifts", tags=["shifts"])
 app.include_router(shifts_active_router, prefix="/api/shifts", tags=["shifts"])
 app.include_router(shifts_close_router, prefix="/api/shifts", tags=["shifts"])
-app.include_router(orders_router, prefix="/api/orders", tags=["orders"])
-app.include_router(api_router, prefix=settings.API_V1_STR)
-app.include_router(cancelled_items.router)
 app.include_router(dashboard_router, prefix="/api/v1/endpoints/dashboard", tags=["dashboard"])
+app.include_router(cancelled_items.router, prefix="/api/v1/endpoints/cancelled-items", tags=["cancelled-items"])
 
 # Thêm WebSocket endpoint
 @app.websocket("/ws/printer")

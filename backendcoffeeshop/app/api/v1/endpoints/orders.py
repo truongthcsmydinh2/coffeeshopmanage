@@ -113,7 +113,7 @@ async def websocket_endpoint(websocket: WebSocket):
     client_id = str(uuid.uuid4())
     try:
         await websocket.accept()
-        await manager.connect(client_id, websocket)
+        await printer_manager.connect(client_id, websocket)
         
         await websocket.send_json({
             "type": "connection",
@@ -150,7 +150,7 @@ async def websocket_endpoint(websocket: WebSocket):
     except Exception as e:
         logger.error(f"WebSocket error for client {client_id}: {str(e)}")
     finally:
-        manager.disconnect(client_id)
+        printer_manager.disconnect(client_id)
 
 @router.get("/", response_model=List[OrderResponse])
 async def get_orders(
@@ -182,11 +182,15 @@ async def get_orders(
                 
                 logger.info(f"Added date filter: {start_dt} to {end_dt}")
                 
-                # Log số lượng orders theo từng ca
-                morning_orders = query.filter(Order.shift_id == 15).count()  # Ca sáng
-                afternoon_orders = query.filter(Order.shift_id == 16).count()  # Ca chiều
-                logger.info(f"Morning shift orders: {morning_orders}")
-                logger.info(f"Afternoon shift orders: {afternoon_orders}")
+                # Log số lượng orders theo từng trạng thái
+                status_counts = db.query(Order.status, func.count(Order.id)).filter(
+                    Order.time_in >= start_dt,
+                    Order.time_in <= end_dt
+                ).group_by(Order.status).all()
+                
+                logger.info("Orders count by status:")
+                for status, count in status_counts:
+                    logger.info(f"- Status {status}: {count} orders")
                 
             except Exception as e:
                 logger.error(f"Invalid date format: {str(e)}")
@@ -238,9 +242,23 @@ async def get_orders(
                     }
                     order_items.append(item_dict)
                 
-                # Chuyển đổi status thành string và đảm bảo không bị None
-                status = str(order.status) if order.status is not None else "pending"
-                payment_status = order.payment_status if order.payment_status is not None else "unpaid"
+                # Xử lý trạng thái order
+                status = order.status
+                if status is None:
+                    status = "pending"
+                elif isinstance(status, str):
+                    status = status.lower()
+                else:
+                    status = str(status).lower()
+                
+                # Xử lý payment_status
+                payment_status = order.payment_status
+                if payment_status is None:
+                    payment_status = "unpaid"
+                elif isinstance(payment_status, str):
+                    payment_status = payment_status.lower()
+                else:
+                    payment_status = str(payment_status).lower()
                 
                 order_dict = {
                     "id": order.id,
@@ -419,18 +437,33 @@ async def create_order(order: OrderCreate, db: Session = Depends(get_db)):
 
         # Gửi thông báo ngay lập tức với đầy đủ thông tin order mới
         logger.info("Broadcasting order update")
-        await manager.broadcast({
-            "type": "order_update",
-            "data": {
-                "type": "created",
-                "order": response
-            }
-        })
+        success = False
+        for printer_id in printer_manager.active_printers.keys():
+            try:
+                result = await printer_manager.send_to_printer(printer_id, {
+                    "type": "order_update",
+                    "data": {
+                        "type": "created",
+                        "order": response
+                    }
+                })
+                if result:
+                    success = True
+                    logger.info(f"Đã gửi thông báo cập nhật tới printer {printer_id}")
+            except Exception as e:
+                logger.error(f"Lỗi khi gửi thông báo cập nhật tới printer {printer_id}: {str(e)}")
+        
+        if not success:
+            logger.error("Không thể gửi thông báo cập nhật tới bất kỳ máy in nào")
 
-        # Gửi bill tới tất cả các máy in đang kết nối
+        # Lấy thông tin bàn
+        table = db.query(Table).filter(Table.id == response['table_id']).first()
+
+        # Gửi bill tới tất cả các máy in đang kết nối qua WebSocket
         bill_lines = [
             {"text": "PHIẾU LÀM ĐỒ", "fontSize": 14, "fontName": "Arial Black", "bold": True, "align": "center"},
-            {"text": f"Bàn: {response['table_id']}", "fontSize": 10, "bold": False, "align": "left"},
+            {"text": f"Bàn: {table.name if table else f'Bàn {response['table_id']}'}", "fontSize": 10, "bold": False, "align": "left"},
+            {"text": f"Thời gian: {response['time_in'].strftime('%H:%M')}", "fontSize": 10, "bold": False, "align": "left"},
             {"text": "--------------------------------", "fontSize": 16, "bold": False, "align": "left"},
         ]
         for item in response["items"]:
@@ -440,13 +473,18 @@ async def create_order(order: OrderCreate, db: Session = Depends(get_db)):
                 bill_lines.append({"text": f"Ghi chú: {item['note']}", "fontSize": 14, "bold": False, "align": "left"})
         bill_lines.append({"text": "--------------------------------", "fontSize": 16, "bold": False, "align": "left"})
 
-        # Gửi tới tất cả các máy in đang kết nối
+        # Gửi tới tất cả các máy in đang kết nối qua WebSocket
+        logger.info("Gửi dữ liệu in qua WebSocket")
+        logger.info(f"Số lượng kết nối đang hoạt động: {len(printer_manager.active_printers)}")
+        logger.info(f"Dữ liệu in: {bill_lines}")
+        
         success = False
         for printer_id in printer_manager.active_printers.keys():
             try:
                 result = await printer_manager.send_to_printer(printer_id, {
                     "type": "print",
-                    "data": bill_lines
+                    "data": bill_lines,
+                    "timestamp": datetime.now().isoformat()
                 })
                 if result:
                     success = True
@@ -456,7 +494,6 @@ async def create_order(order: OrderCreate, db: Session = Depends(get_db)):
         
         if not success:
             logger.error("Không thể gửi dữ liệu tới bất kỳ máy in nào")
-            # Không raise exception vì không muốn ảnh hưởng đến luồng chính
 
         end_time = get_vietnam_time()
         logger.info(f"Order creation completed in {(end_time - start_time).total_seconds()} seconds")
@@ -468,38 +505,49 @@ async def create_order(order: OrderCreate, db: Session = Depends(get_db)):
         logger.error(f"Error creating order: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/{order_id}/pay")
-def pay_order(order_id: int, db: Session = Depends(get_db)):
-    logger.info(f"[PAYMENT] Nhận yêu cầu thanh toán cho order_id={order_id}")
-    order = db.query(Order).filter(Order.id == order_id).first()
-    if not order:
-        logger.error(f"[PAYMENT] Không tìm thấy order_id={order_id}")
-        raise HTTPException(status_code=404, detail="Order not found")
-    
-    # Cập nhật trạng thái order, time_out và payment_status
-    order.status = "completed"
-    order.time_out = get_vietnam_time()
-    order.payment_status = "paid"
-    db.commit()
-    logger.info(f"[PAYMENT] Đã cập nhật trạng thái order_id={order_id} thành completed, payment_status=paid và time_out={order.time_out}")
-    
-    # Cập nhật trạng thái bàn
-    table = db.query(Table).filter(Table.id == order.table_id).first()
-    if table:
-        table.status = "available"
-        db.commit()
-        logger.info(f"[PAYMENT] Đã cập nhật trạng thái bàn id={table.id} thành available")
-    else:
-        logger.error(f"[PAYMENT] Không tìm thấy bàn cho order_id={order_id}")
-    
-    return {
-        "message": "Thanh toán thành công!", 
-        "order_id": order_id, 
-        "order_status": order.status,
-        "payment_status": order.payment_status,
-        "time_out": ensure_timezone(order.time_out),
-        "table_status": table.status if table else None
-    }
+@router.post("/{order_id}/pay", response_model=OrderResponse)
+async def pay_order(order_id: int, db: Session = Depends(get_db)):
+    try:
+        logger.info(f"=== BẮT ĐẦU THANH TOÁN ORDER {order_id} ===")
+        
+        # Lấy order từ database
+        order = db.query(Order).filter(Order.id == order_id).first()
+        if not order:
+            logger.error(f"Order {order_id} không tồn tại")
+            raise HTTPException(status_code=404, detail="Order not found")
+            
+        # Cập nhật trạng thái order
+        order.status = "completed"
+        order.payment_status = "paid"
+        order.time_out = get_vietnam_time()
+        
+        try:
+            db.commit()
+            logger.info(f"Đã cập nhật trạng thái order {order_id} thành công")
+            
+            # Broadcast thông báo cập nhật order
+            await manager.broadcast({
+                "type": "order_status_update",
+                "data": {
+                    "order_id": order_id,
+                    "status": "completed",
+                    "payment_status": "paid",
+                    "timestamp": datetime.now().isoformat()
+                }
+            })
+            
+            return order
+            
+        except Exception as e:
+            db.rollback()
+            logger.error(f"Lỗi khi cập nhật order {order_id}: {str(e)}")
+            raise HTTPException(status_code=500, detail=str(e))
+            
+    except Exception as e:
+        logger.error(f"Lỗi không xác định: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        logger.info(f"=== KẾT THÚC THANH TOÁN ORDER {order_id} ===")
 
 class OrderUpdate(BaseModel):
     table_id: Optional[int] = None
@@ -649,18 +697,34 @@ async def update_order(order_id: int, order: OrderUpdate, db: Session = Depends(
         }
 
         # Gửi thông báo cập nhật
-        await manager.broadcast({
-            "type": "order_update",
-            "data": {
-                "type": "updated",
-                "order": response_dict
-            }
-        })
+        logger.info("Broadcasting order update")
+        success = False
+        for printer_id in printer_manager.active_printers.keys():
+            try:
+                result = await printer_manager.send_to_printer(printer_id, {
+                    "type": "order_update",
+                    "data": {
+                        "type": "updated",
+                        "order": response_dict
+                    }
+                })
+                if result:
+                    success = True
+                    logger.info(f"Đã gửi thông báo cập nhật tới printer {printer_id}")
+            except Exception as e:
+                logger.error(f"Lỗi khi gửi thông báo cập nhật tới printer {printer_id}: {str(e)}")
+        
+        if not success:
+            logger.error("Không thể gửi thông báo cập nhật tới bất kỳ máy in nào")
 
-        # Gửi bill tới tất cả các máy in đang kết nối
+        # Lấy thông tin bàn
+        table = db.query(Table).filter(Table.id == response_dict['table_id']).first()
+
+        # Gửi bill tới tất cả các máy in đang kết nối qua WebSocket
         bill_lines = [
             {"text": "PHIẾU LÀM ĐỒ", "fontSize": 14, "fontName": "Arial Black", "bold": True, "align": "center"},
-            {"text": f"Bàn: {response_dict['table_id']}", "fontSize": 10, "bold": False, "align": "left"},
+            {"text": f"Bàn: {table.name if table else f'Bàn {response_dict['table_id']}'}", "fontSize": 10, "bold": False, "align": "left"},
+            {"text": f"Thời gian: {response_dict['time_in'].strftime('%H:%M')}", "fontSize": 10, "bold": False, "align": "left"},
             {"text": "--------------------------------", "fontSize": 16, "bold": False, "align": "left"},
         ]
         # So sánh món mới với món cũ, chỉ in phần tăng thêm
@@ -683,13 +747,18 @@ async def update_order(order_id: int, order: OrderUpdate, db: Session = Depends(
                     bill_lines.append({"text": f"Ghi chú: {note}", "fontSize": 14, "bold": False, "align": "left"})
         bill_lines.append({"text": "--------------------------------", "fontSize": 16, "bold": False, "align": "left"})
 
-        # Gửi tới tất cả các máy in đang kết nối
+        # Gửi tới tất cả các máy in đang kết nối qua WebSocket
+        logger.info("Gửi dữ liệu in qua WebSocket")
+        logger.info(f"Số lượng kết nối đang hoạt động: {len(printer_manager.active_printers)}")
+        logger.info(f"Dữ liệu in: {bill_lines}")
+        
         success = False
         for printer_id in printer_manager.active_printers.keys():
             try:
                 result = await printer_manager.send_to_printer(printer_id, {
                     "type": "print",
-                    "data": bill_lines
+                    "data": bill_lines,
+                    "timestamp": datetime.now().isoformat()
                 })
                 if result:
                     success = True
@@ -699,7 +768,6 @@ async def update_order(order_id: int, order: OrderUpdate, db: Session = Depends(
         
         if not success:
             logger.error("Không thể gửi dữ liệu tới bất kỳ máy in nào")
-            # Không raise exception vì không muốn ảnh hưởng đến luồng chính
 
         logger.info(f"{'='*50}")
         logger.info("KẾT THÚC CẬP NHẬT ORDER")
@@ -813,19 +881,34 @@ async def transfer_table(
         }
 
         # Gửi thông báo cập nhật
-        await manager.broadcast({
-            "type": "order_update",
-            "data": {
-                "type": "transferred",
-                "order": response_dict
-            }
-        })
+        logger.info("Broadcasting order update")
+        success = False
+        for printer_id in printer_manager.active_printers.keys():
+            try:
+                result = await printer_manager.send_to_printer(printer_id, {
+                    "type": "order_update",
+                    "data": {
+                        "type": "transferred",
+                        "order": response_dict
+                    }
+                })
+                if result:
+                    success = True
+                    logger.info(f"Đã gửi thông báo cập nhật tới printer {printer_id}")
+            except Exception as e:
+                logger.error(f"Lỗi khi gửi thông báo cập nhật tới printer {printer_id}: {str(e)}")
+        
+        if not success:
+            logger.error("Không thể gửi thông báo cập nhật tới bất kỳ máy in nào")
 
-        # Gửi bill tới POSPrinter
-        printer_id = "192.168.99.26"  # Sử dụng IP làm printer_id
+        # Lấy thông tin bàn
+        table = db.query(Table).filter(Table.id == response_dict['table_id']).first()
+
+        # Gửi bill tới tất cả các máy in đang kết nối qua WebSocket
         bill_lines = [
             {"text": "PHIẾU LÀM ĐỒ", "fontSize": 14, "fontName": "Arial Black", "bold": True, "align": "center"},
-            {"text": f"Bàn: {response_dict['table_id']}", "fontSize": 10, "bold": False, "align": "left"},
+            {"text": f"Bàn: {table.name if table else f'Bàn {response_dict['table_id']}'}", "fontSize": 10, "bold": False, "align": "left"},
+            {"text": f"Thời gian: {response_dict['time_in'].strftime('%H:%M')}", "fontSize": 10, "bold": False, "align": "left"},
             {"text": "--------------------------------", "fontSize": 16, "bold": False, "align": "left"},
         ]
         for item in order_items:
@@ -835,14 +918,27 @@ async def transfer_table(
                 bill_lines.append({"text": f"Ghi chú: {item['note']}", "fontSize": 14, "bold": False, "align": "left"})
         bill_lines.append({"text": "--------------------------------", "fontSize": 16, "bold": False, "align": "left"})
 
-        success = await printer_manager.send_to_printer(printer_id, {
-            "type": "print",
-            "data": bill_lines
-        })
+        # Gửi tới tất cả các máy in đang kết nối qua WebSocket
+        logger.info("Gửi dữ liệu in qua WebSocket")
+        logger.info(f"Số lượng kết nối đang hoạt động: {len(printer_manager.active_printers)}")
+        logger.info(f"Dữ liệu in: {bill_lines}")
+        
+        success = False
+        for printer_id in printer_manager.active_printers.keys():
+            try:
+                result = await printer_manager.send_to_printer(printer_id, {
+                    "type": "print",
+                    "data": bill_lines,
+                    "timestamp": datetime.now().isoformat()
+                })
+                if result:
+                    success = True
+                    logger.info(f"Đã gửi dữ liệu tới printer {printer_id}")
+            except Exception as e:
+                logger.error(f"Lỗi khi gửi dữ liệu tới printer {printer_id}: {str(e)}")
         
         if not success:
-            logger.error(f"Không thể gửi dữ liệu tới printer {printer_id}")
-            # Không raise exception vì không muốn ảnh hưởng đến luồng chính
+            logger.error("Không thể gửi dữ liệu tới bất kỳ máy in nào")
 
         logger.info(f"{'='*50}")
         logger.info("KẾT THÚC CHUYỂN BÀN")
@@ -990,24 +1086,12 @@ async def print_order(order_id: int, db: Session = Depends(get_db)):
             {"text": "Cảm ơn quý khách!", "fontSize": 12, "bold": False, "align": "center"},
         ])
 
-        # Gửi tới tất cả các máy in đang kết nối
-        success = False
-        for printer_id in printer_manager.active_printers.keys():
-            try:
-                result = await printer_manager.send_to_printer(printer_id, {
-                    "type": "print",
-                    "data": bill_lines
-                })
-                if result:
-                    success = True
-                    logger.info(f"Đã gửi dữ liệu tới printer {printer_id}")
-            except Exception as e:
-                logger.error(f"Lỗi khi gửi dữ liệu tới printer {printer_id}: {str(e)}")
-        
-        if not success:
-            logger.error("Không thể gửi dữ liệu tới bất kỳ máy in nào")
-            return {"error": "Không thể gửi dữ liệu tới máy in. Vui lòng kiểm tra kết nối máy in."}
-            
+        # Gửi tới tất cả các máy in đang kết nối qua WebSocket
+        await printer_manager.broadcast({
+            "type": "print",
+            "data": bill_lines
+        })
+
         return {"success": True, "message": "Đã gửi hóa đơn tới máy in"}
 
     except Exception as e:
