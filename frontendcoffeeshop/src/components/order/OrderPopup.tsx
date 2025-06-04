@@ -30,9 +30,15 @@ interface OrderItem {
 interface CurrentShift {
   id: number
   staff_id: number
+  staff_id_2?: number
+  staff_name: string
+  staff2_name?: string
   shift_type: string
   initial_cash: number
-  order_paper_count: number
+  staff1_start_order_number: number
+  staff2_start_order_number?: number
+  status: string
+  is_active: boolean
 }
 
 interface OrderPopupProps {

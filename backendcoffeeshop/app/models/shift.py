@@ -1,25 +1,35 @@
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, Float, ForeignKey, Text
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Boolean, Text
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func
-from . import Base
+from datetime import datetime
+from ..database.database import Base
 
 class Shift(Base):
     __tablename__ = "shifts"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True, index=True)
     staff_id = Column(Integer, ForeignKey("staff.id"))
-    shift_type = Column(String(50))  # morning, afternoon, evening
-    start_time = Column(DateTime, default=func.now())
-    end_time = Column(DateTime, nullable=True)
-    initial_cash = Column(Float, nullable=True)
-    end_cash = Column(Float, nullable=True)
-    order_paper_count = Column(Integer, default=0)  # Số cuống order bắt đầu
-    end_order_paper_count = Column(Integer, nullable=True)  # Số cuống order kết thúc
-    status = Column(String(50), default="active")  # active, closed
-    note = Column(Text, nullable=True)
+    staff_id_2 = Column(Integer, ForeignKey("staff.id"), nullable=True)
+    shift_type = Column(String(50))
+    start_time = Column(DateTime)
+    end_time = Column(DateTime)
+    initial_cash = Column(Float, default=0)
+    end_cash = Column(Float)
+    staff1_start_order_number = Column(Integer)
+    staff1_end_order_number = Column(Integer)
+    staff1_calculated_total_orders = Column(Integer)
+    staff2_start_order_number = Column(Integer)
+    staff2_end_order_number = Column(Integer)
+    staff2_calculated_total_orders = Column(Integer)
+    total_shift_orders = Column(Integer)
+    status = Column(String(20))
+    note = Column(Text)
     is_active = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=func.now())
-    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    # Relationship
-    staff = relationship("Staff", back_populates="shifts") 
+    # Relationships
+    staff = relationship("Staff", back_populates="shifts_as_staff1", foreign_keys=[staff_id])
+    staff2 = relationship("Staff", back_populates="shifts_as_staff2", foreign_keys=[staff_id_2])
+    orders = relationship("Order", back_populates="shift")
+    schedules = relationship("StaffSchedule", back_populates="shift") 

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app.database.models import Order, OrderItem, MenuItem
+from app.models import Order, OrderItem, MenuItem
 from app.database.database import get_db
 from app.schemas.order import OrderResponse
 from datetime import datetime, timezone, timedelta, time

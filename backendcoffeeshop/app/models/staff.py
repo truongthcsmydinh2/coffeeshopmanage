@@ -5,6 +5,7 @@ from . import Base
 
 class StaffRole(Base):
     __tablename__ = "staff_roles"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(50), unique=True, index=True)
@@ -17,6 +18,7 @@ class StaffRole(Base):
 
 class Staff(Base):
     __tablename__ = "staff"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True, index=True)
     code = Column(String(50), unique=True)
@@ -34,11 +36,13 @@ class Staff(Base):
     performances = relationship("StaffPerformance", back_populates="staff")
     attendances = relationship("StaffAttendance", back_populates="staff")
     schedules = relationship("StaffSchedule", back_populates="staff")
-    shifts = relationship("Shift", back_populates="staff")
+    shifts_as_staff1 = relationship("Shift", back_populates="staff", foreign_keys="Shift.staff_id")
+    shifts_as_staff2 = relationship("Shift", back_populates="staff2", foreign_keys="Shift.staff_id_2")
     orders = relationship("Order", back_populates="staff")
 
 class StaffAttendance(Base):
     __tablename__ = "staff_attendance"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True, index=True)
     staff_id = Column(Integer, ForeignKey("staff.id"))
@@ -54,6 +58,7 @@ class StaffAttendance(Base):
 
 class StaffPerformance(Base):
     __tablename__ = "staff_performance"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True, index=True)
     staff_id = Column(Integer, ForeignKey("staff.id"))
@@ -69,9 +74,11 @@ class StaffPerformance(Base):
 
 class StaffSchedule(Base):
     __tablename__ = "staff_schedule"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True, index=True)
     staff_id = Column(Integer, ForeignKey("staff.id"))
+    shift_id = Column(Integer, ForeignKey("shifts.id"), nullable=True)
     date = Column(DateTime)
     start_time = Column(DateTime)
     end_time = Column(DateTime)
@@ -80,4 +87,5 @@ class StaffSchedule(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    staff = relationship("Staff", back_populates="schedules") 
+    staff = relationship("Staff", back_populates="schedules")
+    shift = relationship("Shift", back_populates="schedules") 

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect, status, Request
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from app.database.models import Order, OrderItem, MenuItem, Table, Shift
+from app.models import Order, OrderItem, MenuItem, Table, Shift
 from app.database.database import get_db
 from app.schemas.order import OrderResponse, OrderCreate, OrderItemResponse, OrderUpdate, OrderItemCreate
 from datetime import datetime, timezone, timedelta, time

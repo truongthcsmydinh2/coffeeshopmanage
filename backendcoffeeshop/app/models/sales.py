@@ -5,6 +5,7 @@ from . import Base
 
 class SalesReport(Base):
     __tablename__ = "sales_reports"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True, index=True)
     date = Column(DateTime)

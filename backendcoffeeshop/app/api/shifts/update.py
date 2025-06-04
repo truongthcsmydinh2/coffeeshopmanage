@@ -1,23 +1,23 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import Optional
+from ...database import get_db
 from ...models.shift import Shift as ShiftModel
 from ...models.staff import Staff
-from ...database import get_db
 from ...schemas.shift import ShiftUpdate, Shift
 from datetime import datetime
 from .utils import calculate_total_orders
 
 router = APIRouter()
 
-@router.put("/{shift_id}/close", response_model=Shift)
-def close_shift(
+@router.put("/{shift_id}", response_model=Shift)
+def update_shift(
     shift_id: int, 
     shift_update: ShiftUpdate, 
     db: Session = Depends(get_db)
 ):
     """
-    Kết thúc ca làm việc
+    Cập nhật thông tin ca làm việc trong quá trình ca đang chạy
     """
     # Kiểm tra shift có tồn tại không
     shift = db.query(ShiftModel).filter(ShiftModel.id == shift_id).first()
@@ -25,8 +25,8 @@ def close_shift(
         raise HTTPException(status_code=404, detail="Không tìm thấy ca làm việc")
     
     # Kiểm tra ca có đang mở không
-    if shift.end_time is not None or shift.status != "open":
-        raise HTTPException(status_code=400, detail="Ca làm việc này đã được đóng")
+    if shift.status != "open" or not shift.is_active:
+        raise HTTPException(status_code=400, detail="Chỉ có thể cập nhật ca làm việc đang mở")
     
     # Cập nhật các thông tin cơ bản
     if shift_update.end_cash is not None:
@@ -62,10 +62,8 @@ def close_shift(
     staff2_orders = shift.staff2_calculated_total_orders or 0
     shift.total_shift_orders = staff1_orders + staff2_orders
     
-    # Tự động set end_time là thời điểm hiện tại
-    shift.end_time = datetime.now()
-    shift.status = "closed"
-    shift.is_active = False
+    # Cập nhật thời gian
+    shift.updated_at = datetime.now()
     
     db.commit()
     db.refresh(shift)

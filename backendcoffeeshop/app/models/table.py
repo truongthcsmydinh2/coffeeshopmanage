@@ -5,6 +5,7 @@ from . import Base
 
 class Table(Base):
     __tablename__ = "tables"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(50), unique=True, index=True)

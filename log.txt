@@ -1,0 +1,843 @@
+(venv) vps@mysever:~/coffeeshopmanage/backendcoffeeshop$ uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+INFO:     Will watch for changes in these directories: ['/home/vps/coffeeshopmanage/backendcoffeeshop']
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [400928] using WatchFiles
+INFO:     Started server process [400930]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     118.68.225.35:41025 - "GET /api/v1/endpoints/dashboard/summary?date=2025-06-05 HTTP/1.1" 200 OK
+INFO:     118.68.225.35:41026 - "GET /api/v1/endpoints/dashboard/cigarettes?date=2025-06-05 HTTP/1.1" 200 OK
+2025-06-05 01:56:58,815 - INFO - === BẮT ĐẦU GET ORDERS ===
+INFO:app.api.v1.endpoints.orders:=== BẮT ĐẦU GET ORDERS ===
+2025-06-05 01:56:58,815 - INFO - Params: skip=0, limit=100, date=None
+INFO:app.api.v1.endpoints.orders:Params: skip=0, limit=100, date=None
+2025-06-05 01:56:58,816 - INFO - Base query created without any status filter
+INFO:app.api.v1.endpoints.orders:Base query created without any status filter
+2025-06-05 01:56:58,817 - INFO - SQL Query: SELECT orders.id, orders.table_id, orders.staff_id_1, orders.shift_id, orders.status, orders.total_amount, orders.note, orders.order_code, orders.payment_status, orders.time_in, orders.time_out
+FROM orders
+INFO:app.api.v1.endpoints.orders:SQL Query: SELECT orders.id, orders.table_id, orders.staff_id_1, orders.shift_id, orders.status, orders.total_amount, orders.note, orders.order_code, orders.payment_status, orders.time_in, orders.time_out
+FROM orders
+2025-06-05 01:56:58,897 - INFO - Total orders found before pagination: 413
+INFO:app.api.v1.endpoints.orders:Total orders found before pagination: 413
+2025-06-05 01:56:58,904 - INFO - Orders after pagination: 100
+INFO:app.api.v1.endpoints.orders:Orders after pagination: 100
+2025-06-05 01:56:58,904 - INFO - Order 666: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 22:11:25, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 666: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 22:11:25, shift_id=19
+2025-06-05 01:56:58,904 - INFO - Order 665: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 21:55:31, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 665: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 21:55:31, shift_id=19
+2025-06-05 01:56:58,904 - INFO - Order 664: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 21:51:08, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 664: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 21:51:08, shift_id=19
+2025-06-05 01:56:58,904 - INFO - Order 663: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 21:43:46, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 663: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 21:43:46, shift_id=19
+2025-06-05 01:56:58,904 - INFO - Order 662: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 21:35:37, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 662: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 21:35:37, shift_id=19
+2025-06-05 01:56:58,904 - INFO - Order 661: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 21:21:55, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 661: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 21:21:55, shift_id=19
+2025-06-05 01:56:58,904 - INFO - Order 660: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 21:21:42, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 660: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 21:21:42, shift_id=19
+2025-06-05 01:56:58,904 - INFO - Order 659: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 21:21:35, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 659: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 21:21:35, shift_id=19
+2025-06-05 01:56:58,904 - INFO - Order 658: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 20:59:19, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 658: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 20:59:19, shift_id=19
+2025-06-05 01:56:58,904 - INFO - Order 657: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 20:29:46, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 657: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 20:29:46, shift_id=19
+2025-06-05 01:56:58,904 - INFO - Order 656: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 20:14:47, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 656: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 20:14:47, shift_id=19
+2025-06-05 01:56:58,904 - INFO - Order 655: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 20:09:06, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 655: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 20:09:06, shift_id=19
+2025-06-05 01:56:58,904 - INFO - Order 654: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:58:59, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 654: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:58:59, shift_id=19
+2025-06-05 01:56:58,905 - INFO - Order 653: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:56:30, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 653: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:56:30, shift_id=19
+2025-06-05 01:56:58,905 - INFO - Order 652: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:54:14, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 652: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:54:14, shift_id=19
+2025-06-05 01:56:58,905 - INFO - Order 651: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:51:14, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 651: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:51:14, shift_id=19
+2025-06-05 01:56:58,905 - INFO - Order 650: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:50:24, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 650: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:50:24, shift_id=19
+2025-06-05 01:56:58,905 - INFO - Order 649: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:47:04, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 649: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:47:04, shift_id=19
+2025-06-05 01:56:58,905 - INFO - Order 648: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:44:26, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 648: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:44:26, shift_id=19
+2025-06-05 01:56:58,905 - INFO - Order 647: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:31:31, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 647: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:31:31, shift_id=19
+2025-06-05 01:56:58,905 - INFO - Order 646: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:20:17, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 646: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:20:17, shift_id=19
+2025-06-05 01:56:58,905 - INFO - Order 645: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:12:19, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 645: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:12:19, shift_id=19
+2025-06-05 01:56:58,908 - INFO - Order 644: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:03:54, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 644: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:03:54, shift_id=19
+2025-06-05 01:56:58,909 - INFO - Order 643: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:01:29, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 643: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:01:29, shift_id=19
+2025-06-05 01:56:58,909 - INFO - Order 642: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 18:31:06, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 642: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 18:31:06, shift_id=19
+2025-06-05 01:56:58,909 - INFO - Order 641: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 18:11:49, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 641: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 18:11:49, shift_id=19
+2025-06-05 01:56:58,909 - INFO - Order 640: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 18:02:52, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 640: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 18:02:52, shift_id=19
+2025-06-05 01:56:58,912 - INFO - Order 639: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 17:46:45, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 639: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 17:46:45, shift_id=18
+2025-06-05 01:56:58,912 - INFO - Order 636: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 17:22:32, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 636: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 17:22:32, shift_id=18
+2025-06-05 01:56:58,912 - INFO - Order 635: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 17:21:27, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 635: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 17:21:27, shift_id=18
+2025-06-05 01:56:58,913 - INFO - Order 634: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 17:12:35, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 634: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 17:12:35, shift_id=18
+2025-06-05 01:56:58,913 - INFO - Order 632: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 17:02:24, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 632: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 17:02:24, shift_id=18
+2025-06-05 01:56:58,913 - INFO - Order 631: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 16:57:18, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 631: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 16:57:18, shift_id=18
+2025-06-05 01:56:58,913 - INFO - Order 630: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 16:45:56, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 630: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 16:45:56, shift_id=18
+2025-06-05 01:56:58,913 - INFO - Order 629: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 16:45:45, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 629: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 16:45:45, shift_id=18
+2025-06-05 01:56:58,913 - INFO - Order 628: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 16:36:33, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 628: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 16:36:33, shift_id=18
+2025-06-05 01:56:58,914 - INFO - Order 627: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 16:25:22, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 627: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 16:25:22, shift_id=18
+2025-06-05 01:56:58,914 - INFO - Order 626: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 16:01:18, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 626: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 16:01:18, shift_id=18
+2025-06-05 01:56:58,914 - INFO - Order 625: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 15:59:29, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 625: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 15:59:29, shift_id=18
+2025-06-05 01:56:58,914 - INFO - Order 624: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 15:31:21, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 624: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 15:31:21, shift_id=18
+2025-06-05 01:56:58,914 - INFO - Order 623: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 15:14:30, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 623: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 15:14:30, shift_id=18
+2025-06-05 01:56:58,914 - INFO - Order 622: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 14:42:06, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 622: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 14:42:06, shift_id=18
+2025-06-05 01:56:58,914 - INFO - Order 621: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 14:39:20, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 621: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 14:39:20, shift_id=18
+2025-06-05 01:56:58,915 - INFO - Order 614: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 14:30:21, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 614: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 14:30:21, shift_id=18
+2025-06-05 01:56:58,915 - INFO - Order 609: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 14:14:31, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 609: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 14:14:31, shift_id=18
+2025-06-05 01:56:58,915 - INFO - Order 608: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 14:13:02, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 608: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 14:13:02, shift_id=18
+2025-06-05 01:56:58,915 - INFO - Order 607: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 13:50:53, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 607: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 13:50:53, shift_id=18
+2025-06-05 01:56:58,915 - INFO - Order 605: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 13:48:07, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 605: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 13:48:07, shift_id=18
+2025-06-05 01:56:58,915 - INFO - Order 604: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 13:47:58, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 604: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 13:47:58, shift_id=18
+2025-06-05 01:56:58,915 - INFO - Order 603: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 13:47:07, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 603: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 13:47:07, shift_id=18
+2025-06-05 01:56:58,916 - INFO - Order 602: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 13:46:32, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 602: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 13:46:32, shift_id=18
+2025-06-05 01:56:58,916 - INFO - Order 597: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 13:13:12, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 597: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 13:13:12, shift_id=18
+2025-06-05 01:56:58,916 - INFO - Order 596: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 13:01:15, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 596: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 13:01:15, shift_id=18
+2025-06-05 01:56:58,916 - INFO - Order 595: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 12:35:21, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 595: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 12:35:21, shift_id=18
+2025-06-05 01:56:58,917 - INFO - Order 594: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 12:18:43, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 594: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 12:18:43, shift_id=18
+2025-06-05 01:56:58,919 - INFO - Order 593: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 12:17:23, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 593: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 12:17:23, shift_id=18
+2025-06-05 01:56:58,919 - INFO - Order 592: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 12:11:32, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 592: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 12:11:32, shift_id=18
+2025-06-05 01:56:58,919 - INFO - Order 591: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 12:09:40, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 591: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 12:09:40, shift_id=18
+2025-06-05 01:56:58,919 - INFO - Order 590: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 11:52:06, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 590: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 11:52:06, shift_id=17
+2025-06-05 01:56:58,920 - INFO - Order 589: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 11:41:51, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 589: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 11:41:51, shift_id=17
+2025-06-05 01:56:58,920 - INFO - Order 588: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 11:36:23, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 588: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 11:36:23, shift_id=17
+2025-06-05 01:56:58,920 - INFO - Order 587: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 11:26:45, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 587: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 11:26:45, shift_id=17
+2025-06-05 01:56:58,920 - INFO - Order 586: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 11:16:29, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 586: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 11:16:29, shift_id=17
+2025-06-05 01:56:58,920 - INFO - Order 585: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 11:15:49, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 585: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 11:15:49, shift_id=17
+2025-06-05 01:56:58,920 - INFO - Order 584: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 11:14:00, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 584: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 11:14:00, shift_id=17
+2025-06-05 01:56:58,920 - INFO - Order 583: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 11:13:27, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 583: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 11:13:27, shift_id=17
+2025-06-05 01:56:58,921 - INFO - Order 582: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 11:03:10, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 582: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 11:03:10, shift_id=17
+2025-06-05 01:56:58,921 - INFO - Order 581: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 11:02:42, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 581: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 11:02:42, shift_id=17
+2025-06-05 01:56:58,921 - INFO - Order 580: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 10:39:42, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 580: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 10:39:42, shift_id=17
+2025-06-05 01:56:58,921 - INFO - Order 579: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 10:36:51, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 579: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 10:36:51, shift_id=17
+2025-06-05 01:56:58,921 - INFO - Order 578: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 10:35:25, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 578: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 10:35:25, shift_id=17
+2025-06-05 01:56:58,921 - INFO - Order 577: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 10:33:49, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 577: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 10:33:49, shift_id=17
+2025-06-05 01:56:58,921 - INFO - Order 576: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 10:26:03, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 576: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 10:26:03, shift_id=17
+2025-06-05 01:56:58,921 - INFO - Order 575: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 10:19:31, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 575: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 10:19:31, shift_id=17
+2025-06-05 01:56:58,922 - INFO - Order 574: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 10:07:48, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 574: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 10:07:48, shift_id=17
+2025-06-05 01:56:58,922 - INFO - Order 573: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 10:06:24, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 573: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 10:06:24, shift_id=17
+2025-06-05 01:56:58,922 - INFO - Order 572: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 10:05:15, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 572: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 10:05:15, shift_id=17
+2025-06-05 01:56:58,922 - INFO - Order 571: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:57:52, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 571: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:57:52, shift_id=17
+2025-06-05 01:56:58,922 - INFO - Order 570: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:40:45, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 570: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:40:45, shift_id=17
+2025-06-05 01:56:58,925 - INFO - Order 569: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:33:51, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 569: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:33:51, shift_id=17
+2025-06-05 01:56:58,925 - INFO - Order 568: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:29:59, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 568: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:29:59, shift_id=17
+2025-06-05 01:56:58,925 - INFO - Order 567: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:29:48, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 567: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:29:48, shift_id=17
+2025-06-05 01:56:58,926 - INFO - Order 566: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:23:56, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 566: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:23:56, shift_id=17
+2025-06-05 01:56:58,926 - INFO - Order 565: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:19:35, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 565: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:19:35, shift_id=17
+2025-06-05 01:56:58,926 - INFO - Order 564: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:17:03, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 564: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:17:03, shift_id=17
+2025-06-05 01:56:58,926 - INFO - Order 563: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:12:13, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 563: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:12:13, shift_id=17
+2025-06-05 01:56:58,926 - INFO - Order 562: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:06:14, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 562: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:06:14, shift_id=17
+2025-06-05 01:56:58,926 - INFO - Order 561: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:05:35, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 561: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:05:35, shift_id=17
+2025-06-05 01:56:58,926 - INFO - Order 560: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:02:48, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 560: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:02:48, shift_id=17
+2025-06-05 01:56:58,926 - INFO - Order 559: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 08:58:14, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 559: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 08:58:14, shift_id=17
+2025-06-05 01:56:58,927 - INFO - Order 558: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 08:56:54, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 558: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 08:56:54, shift_id=17
+2025-06-05 01:56:58,927 - INFO - Order 557: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 08:54:53, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 557: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 08:54:53, shift_id=17
+2025-06-05 01:56:58,927 - INFO - Order 556: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 08:47:19, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 556: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 08:47:19, shift_id=17
+2025-06-05 01:56:58,927 - INFO - Order 555: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 08:41:52, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 555: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 08:41:52, shift_id=17
+2025-06-05 01:56:58,927 - INFO - Order 554: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 08:39:14, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 554: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 08:39:14, shift_id=17
+2025-06-05 01:56:58,927 - INFO - Order 553: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 08:29:51, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 553: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 08:29:51, shift_id=17
+2025-06-05 01:56:58,927 - INFO - Order 552: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 08:28:27, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 552: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 08:28:27, shift_id=17
+2025-06-05 01:56:58,928 - INFO - Order 551: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 08:23:51, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 551: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 08:23:51, shift_id=17
+2025-06-05 01:56:58,928 - INFO - Order 550: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 08:22:24, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 550: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 08:22:24, shift_id=17
+2025-06-05 01:56:58,928 - INFO - Order 549: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 08:22:06, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 549: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 08:22:06, shift_id=17
+2025-06-05 01:56:58,931 - ERROR - Error processing order 666: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 666: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,933 - ERROR - Error processing order 665: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 665: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,934 - ERROR - Error processing order 664: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 664: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,936 - ERROR - Error processing order 663: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 663: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,939 - ERROR - Error processing order 662: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 662: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,941 - ERROR - Error processing order 661: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 661: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,942 - ERROR - Error processing order 660: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 660: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,943 - ERROR - Error processing order 659: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 659: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,944 - ERROR - Error processing order 658: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 658: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,946 - ERROR - Error processing order 657: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 657: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,947 - ERROR - Error processing order 656: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 656: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,948 - ERROR - Error processing order 655: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 655: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,950 - ERROR - Error processing order 654: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 654: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,954 - ERROR - Error processing order 653: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 653: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,955 - ERROR - Error processing order 652: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 652: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,959 - ERROR - Error processing order 651: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 651: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,960 - ERROR - Error processing order 650: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 650: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,961 - ERROR - Error processing order 649: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 649: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,962 - ERROR - Error processing order 648: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 648: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,963 - ERROR - Error processing order 647: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 647: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,964 - ERROR - Error processing order 646: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 646: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,965 - ERROR - Error processing order 645: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 645: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,966 - ERROR - Error processing order 644: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 644: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,966 - ERROR - Error processing order 643: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 643: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,967 - ERROR - Error processing order 642: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 642: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,968 - ERROR - Error processing order 641: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 641: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,969 - ERROR - Error processing order 640: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 640: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,970 - ERROR - Error processing order 639: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 639: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,970 - ERROR - Error processing order 636: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 636: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,971 - ERROR - Error processing order 635: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 635: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,972 - ERROR - Error processing order 634: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 634: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,973 - ERROR - Error processing order 632: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 632: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,974 - ERROR - Error processing order 631: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 631: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,974 - ERROR - Error processing order 630: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 630: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,975 - ERROR - Error processing order 629: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 629: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,976 - ERROR - Error processing order 628: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 628: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,977 - ERROR - Error processing order 627: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 627: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,978 - ERROR - Error processing order 626: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 626: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,978 - ERROR - Error processing order 625: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 625: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,979 - ERROR - Error processing order 624: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 624: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,980 - ERROR - Error processing order 623: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 623: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,981 - ERROR - Error processing order 622: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 622: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,982 - ERROR - Error processing order 621: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 621: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,982 - ERROR - Error processing order 614: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 614: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,983 - ERROR - Error processing order 609: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 609: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,984 - ERROR - Error processing order 608: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 608: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,985 - ERROR - Error processing order 607: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 607: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,986 - ERROR - Error processing order 605: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 605: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,986 - ERROR - Error processing order 604: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 604: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,987 - ERROR - Error processing order 603: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 603: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,988 - ERROR - Error processing order 602: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 602: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,989 - ERROR - Error processing order 597: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 597: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,990 - ERROR - Error processing order 596: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 596: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,990 - ERROR - Error processing order 595: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 595: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,991 - ERROR - Error processing order 594: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 594: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,992 - ERROR - Error processing order 593: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 593: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,993 - ERROR - Error processing order 592: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 592: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,994 - ERROR - Error processing order 591: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 591: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,994 - ERROR - Error processing order 590: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 590: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,995 - ERROR - Error processing order 589: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 589: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,996 - ERROR - Error processing order 588: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 588: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,997 - ERROR - Error processing order 587: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 587: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,998 - ERROR - Error processing order 586: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 586: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,998 - ERROR - Error processing order 585: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 585: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:58,999 - ERROR - Error processing order 584: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 584: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,000 - ERROR - Error processing order 583: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 583: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,001 - ERROR - Error processing order 582: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 582: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,002 - ERROR - Error processing order 581: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 581: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,003 - ERROR - Error processing order 580: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 580: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,003 - ERROR - Error processing order 579: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 579: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,004 - ERROR - Error processing order 578: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 578: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,005 - ERROR - Error processing order 577: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 577: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,006 - ERROR - Error processing order 576: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 576: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,007 - ERROR - Error processing order 575: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 575: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,007 - ERROR - Error processing order 574: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 574: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,008 - ERROR - Error processing order 573: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 573: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,009 - ERROR - Error processing order 572: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 572: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,010 - ERROR - Error processing order 571: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 571: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,011 - ERROR - Error processing order 570: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 570: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,011 - ERROR - Error processing order 569: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 569: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,012 - ERROR - Error processing order 568: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 568: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,013 - ERROR - Error processing order 567: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 567: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,014 - ERROR - Error processing order 566: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 566: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,015 - ERROR - Error processing order 565: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 565: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,015 - ERROR - Error processing order 564: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 564: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,016 - ERROR - Error processing order 563: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 563: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,017 - ERROR - Error processing order 562: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 562: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,018 - ERROR - Error processing order 561: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 561: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,018 - ERROR - Error processing order 560: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 560: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,019 - ERROR - Error processing order 559: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 559: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,020 - ERROR - Error processing order 558: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 558: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,021 - ERROR - Error processing order 557: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 557: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,021 - ERROR - Error processing order 556: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 556: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,022 - ERROR - Error processing order 555: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 555: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,023 - ERROR - Error processing order 554: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 554: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,024 - ERROR - Error processing order 553: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 553: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,025 - ERROR - Error processing order 552: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 552: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,025 - ERROR - Error processing order 551: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 551: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,026 - ERROR - Error processing order 550: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 550: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,027 - ERROR - Error processing order 549: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 549: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,027 - INFO - === KẾT THÚC GET ORDERS - Trả về 0 orders ===
+INFO:app.api.v1.endpoints.orders:=== KẾT THÚC GET ORDERS - Trả về 0 orders ===
+INFO:     192.168.99.123:58059 - "GET /api/v1/orders/ HTTP/1.1" 200 OK
+INFO:     192.168.99.123:58061 - "GET /api/shifts/current HTTP/1.1" 200 OK
+2025-06-05 01:56:59,034 - INFO - === BẮT ĐẦU GET ORDERS ===
+INFO:app.api.v1.endpoints.orders:=== BẮT ĐẦU GET ORDERS ===
+2025-06-05 01:56:59,035 - INFO - Params: skip=0, limit=100, date=None
+INFO:app.api.v1.endpoints.orders:Params: skip=0, limit=100, date=None
+2025-06-05 01:56:59,035 - INFO - Base query created without any status filter
+INFO:app.api.v1.endpoints.orders:Base query created without any status filter
+2025-06-05 01:56:59,036 - INFO - SQL Query: SELECT orders.id, orders.table_id, orders.staff_id_1, orders.shift_id, orders.status, orders.total_amount, orders.note, orders.order_code, orders.payment_status, orders.time_in, orders.time_out
+FROM orders
+INFO:app.api.v1.endpoints.orders:SQL Query: SELECT orders.id, orders.table_id, orders.staff_id_1, orders.shift_id, orders.status, orders.total_amount, orders.note, orders.order_code, orders.payment_status, orders.time_in, orders.time_out
+FROM orders
+2025-06-05 01:56:59,037 - INFO - Total orders found before pagination: 413
+INFO:app.api.v1.endpoints.orders:Total orders found before pagination: 413
+2025-06-05 01:56:59,040 - INFO - Orders after pagination: 100
+INFO:app.api.v1.endpoints.orders:Orders after pagination: 100
+2025-06-05 01:56:59,040 - INFO - Order 666: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 22:11:25, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 666: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 22:11:25, shift_id=19
+2025-06-05 01:56:59,040 - INFO - Order 665: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 21:55:31, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 665: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 21:55:31, shift_id=19
+2025-06-05 01:56:59,040 - INFO - Order 664: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 21:51:08, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 664: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 21:51:08, shift_id=19
+2025-06-05 01:56:59,040 - INFO - Order 663: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 21:43:46, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 663: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 21:43:46, shift_id=19
+2025-06-05 01:56:59,040 - INFO - Order 662: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 21:35:37, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 662: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 21:35:37, shift_id=19
+2025-06-05 01:56:59,040 - INFO - Order 661: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 21:21:55, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 661: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 21:21:55, shift_id=19
+2025-06-05 01:56:59,040 - INFO - Order 660: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 21:21:42, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 660: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 21:21:42, shift_id=19
+2025-06-05 01:56:59,040 - INFO - Order 659: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 21:21:35, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 659: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 21:21:35, shift_id=19
+2025-06-05 01:56:59,041 - INFO - Order 658: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 20:59:19, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 658: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 20:59:19, shift_id=19
+2025-06-05 01:56:59,041 - INFO - Order 657: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 20:29:46, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 657: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 20:29:46, shift_id=19
+2025-06-05 01:56:59,041 - INFO - Order 656: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 20:14:47, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 656: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 20:14:47, shift_id=19
+2025-06-05 01:56:59,041 - INFO - Order 655: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 20:09:06, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 655: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 20:09:06, shift_id=19
+2025-06-05 01:56:59,041 - INFO - Order 654: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:58:59, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 654: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:58:59, shift_id=19
+2025-06-05 01:56:59,041 - INFO - Order 653: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:56:30, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 653: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:56:30, shift_id=19
+2025-06-05 01:56:59,041 - INFO - Order 652: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:54:14, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 652: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:54:14, shift_id=19
+2025-06-05 01:56:59,041 - INFO - Order 651: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:51:14, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 651: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:51:14, shift_id=19
+2025-06-05 01:56:59,041 - INFO - Order 650: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:50:24, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 650: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:50:24, shift_id=19
+2025-06-05 01:56:59,041 - INFO - Order 649: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:47:04, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 649: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:47:04, shift_id=19
+2025-06-05 01:56:59,041 - INFO - Order 648: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:44:26, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 648: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:44:26, shift_id=19
+2025-06-05 01:56:59,041 - INFO - Order 647: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:31:31, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 647: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:31:31, shift_id=19
+2025-06-05 01:56:59,041 - INFO - Order 646: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:20:17, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 646: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:20:17, shift_id=19
+2025-06-05 01:56:59,041 - INFO - Order 645: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:12:19, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 645: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:12:19, shift_id=19
+2025-06-05 01:56:59,041 - INFO - Order 644: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:03:54, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 644: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:03:54, shift_id=19
+2025-06-05 01:56:59,041 - INFO - Order 643: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:01:29, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 643: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 19:01:29, shift_id=19
+2025-06-05 01:56:59,041 - INFO - Order 642: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 18:31:06, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 642: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 18:31:06, shift_id=19
+2025-06-05 01:56:59,041 - INFO - Order 641: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 18:11:49, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 641: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 18:11:49, shift_id=19
+2025-06-05 01:56:59,041 - INFO - Order 640: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 18:02:52, shift_id=19
+INFO:app.api.v1.endpoints.orders:Order 640: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 18:02:52, shift_id=19
+2025-06-05 01:56:59,041 - INFO - Order 639: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 17:46:45, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 639: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 17:46:45, shift_id=18
+2025-06-05 01:56:59,041 - INFO - Order 636: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 17:22:32, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 636: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 17:22:32, shift_id=18
+2025-06-05 01:56:59,042 - INFO - Order 635: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 17:21:27, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 635: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 17:21:27, shift_id=18
+2025-06-05 01:56:59,042 - INFO - Order 634: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 17:12:35, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 634: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 17:12:35, shift_id=18
+2025-06-05 01:56:59,042 - INFO - Order 632: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 17:02:24, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 632: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 17:02:24, shift_id=18
+2025-06-05 01:56:59,042 - INFO - Order 631: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 16:57:18, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 631: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 16:57:18, shift_id=18
+2025-06-05 01:56:59,042 - INFO - Order 630: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 16:45:56, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 630: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 16:45:56, shift_id=18
+2025-06-05 01:56:59,042 - INFO - Order 629: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 16:45:45, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 629: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 16:45:45, shift_id=18
+2025-06-05 01:56:59,042 - INFO - Order 628: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 16:36:33, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 628: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 16:36:33, shift_id=18
+2025-06-05 01:56:59,042 - INFO - Order 627: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 16:25:22, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 627: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 16:25:22, shift_id=18
+2025-06-05 01:56:59,042 - INFO - Order 626: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 16:01:18, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 626: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 16:01:18, shift_id=18
+2025-06-05 01:56:59,042 - INFO - Order 625: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 15:59:29, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 625: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 15:59:29, shift_id=18
+2025-06-05 01:56:59,042 - INFO - Order 624: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 15:31:21, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 624: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 15:31:21, shift_id=18
+2025-06-05 01:56:59,042 - INFO - Order 623: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 15:14:30, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 623: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 15:14:30, shift_id=18
+2025-06-05 01:56:59,042 - INFO - Order 622: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 14:42:06, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 622: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 14:42:06, shift_id=18
+2025-06-05 01:56:59,042 - INFO - Order 621: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 14:39:20, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 621: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 14:39:20, shift_id=18
+2025-06-05 01:56:59,042 - INFO - Order 614: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 14:30:21, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 614: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 14:30:21, shift_id=18
+2025-06-05 01:56:59,042 - INFO - Order 609: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 14:14:31, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 609: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 14:14:31, shift_id=18
+2025-06-05 01:56:59,042 - INFO - Order 608: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 14:13:02, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 608: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 14:13:02, shift_id=18
+2025-06-05 01:56:59,042 - INFO - Order 607: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 13:50:53, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 607: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 13:50:53, shift_id=18
+2025-06-05 01:56:59,042 - INFO - Order 605: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 13:48:07, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 605: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 13:48:07, shift_id=18
+2025-06-05 01:56:59,042 - INFO - Order 604: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 13:47:58, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 604: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 13:47:58, shift_id=18
+2025-06-05 01:56:59,042 - INFO - Order 603: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 13:47:07, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 603: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 13:47:07, shift_id=18
+2025-06-05 01:56:59,043 - INFO - Order 602: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 13:46:32, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 602: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 13:46:32, shift_id=18
+2025-06-05 01:56:59,043 - INFO - Order 597: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 13:13:12, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 597: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 13:13:12, shift_id=18
+2025-06-05 01:56:59,043 - INFO - Order 596: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 13:01:15, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 596: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 13:01:15, shift_id=18
+2025-06-05 01:56:59,043 - INFO - Order 595: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 12:35:21, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 595: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 12:35:21, shift_id=18
+2025-06-05 01:56:59,043 - INFO - Order 594: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 12:18:43, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 594: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 12:18:43, shift_id=18
+2025-06-05 01:56:59,043 - INFO - Order 593: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 12:17:23, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 593: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 12:17:23, shift_id=18
+2025-06-05 01:56:59,043 - INFO - Order 592: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 12:11:32, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 592: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 12:11:32, shift_id=18
+2025-06-05 01:56:59,043 - INFO - Order 591: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 12:09:40, shift_id=18
+INFO:app.api.v1.endpoints.orders:Order 591: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 12:09:40, shift_id=18
+2025-06-05 01:56:59,043 - INFO - Order 590: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 11:52:06, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 590: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 11:52:06, shift_id=17
+2025-06-05 01:56:59,043 - INFO - Order 589: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 11:41:51, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 589: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 11:41:51, shift_id=17
+2025-06-05 01:56:59,043 - INFO - Order 588: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 11:36:23, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 588: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 11:36:23, shift_id=17
+2025-06-05 01:56:59,043 - INFO - Order 587: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 11:26:45, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 587: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 11:26:45, shift_id=17
+2025-06-05 01:56:59,043 - INFO - Order 586: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 11:16:29, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 586: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 11:16:29, shift_id=17
+2025-06-05 01:56:59,043 - INFO - Order 585: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 11:15:49, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 585: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 11:15:49, shift_id=17
+2025-06-05 01:56:59,043 - INFO - Order 584: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 11:14:00, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 584: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 11:14:00, shift_id=17
+2025-06-05 01:56:59,043 - INFO - Order 583: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 11:13:27, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 583: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 11:13:27, shift_id=17
+2025-06-05 01:56:59,043 - INFO - Order 582: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 11:03:10, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 582: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 11:03:10, shift_id=17
+2025-06-05 01:56:59,043 - INFO - Order 581: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 11:02:42, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 581: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 11:02:42, shift_id=17
+2025-06-05 01:56:59,043 - INFO - Order 580: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 10:39:42, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 580: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 10:39:42, shift_id=17
+2025-06-05 01:56:59,043 - INFO - Order 579: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 10:36:51, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 579: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 10:36:51, shift_id=17
+2025-06-05 01:56:59,043 - INFO - Order 578: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 10:35:25, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 578: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 10:35:25, shift_id=17
+2025-06-05 01:56:59,043 - INFO - Order 577: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 10:33:49, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 577: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 10:33:49, shift_id=17
+2025-06-05 01:56:59,044 - INFO - Order 576: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 10:26:03, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 576: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 10:26:03, shift_id=17
+2025-06-05 01:56:59,044 - INFO - Order 575: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 10:19:31, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 575: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 10:19:31, shift_id=17
+2025-06-05 01:56:59,044 - INFO - Order 574: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 10:07:48, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 574: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 10:07:48, shift_id=17
+2025-06-05 01:56:59,044 - INFO - Order 573: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 10:06:24, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 573: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 10:06:24, shift_id=17
+2025-06-05 01:56:59,044 - INFO - Order 572: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 10:05:15, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 572: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 10:05:15, shift_id=17
+2025-06-05 01:56:59,044 - INFO - Order 571: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:57:52, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 571: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:57:52, shift_id=17
+2025-06-05 01:56:59,044 - INFO - Order 570: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:40:45, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 570: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:40:45, shift_id=17
+2025-06-05 01:56:59,044 - INFO - Order 569: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:33:51, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 569: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:33:51, shift_id=17
+2025-06-05 01:56:59,044 - INFO - Order 568: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:29:59, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 568: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:29:59, shift_id=17
+2025-06-05 01:56:59,044 - INFO - Order 567: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:29:48, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 567: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:29:48, shift_id=17
+2025-06-05 01:56:59,044 - INFO - Order 566: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:23:56, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 566: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:23:56, shift_id=17
+2025-06-05 01:56:59,044 - INFO - Order 565: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:19:35, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 565: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:19:35, shift_id=17
+2025-06-05 01:56:59,044 - INFO - Order 564: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:17:03, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 564: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:17:03, shift_id=17
+2025-06-05 01:56:59,044 - INFO - Order 563: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:12:13, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 563: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:12:13, shift_id=17
+2025-06-05 01:56:59,044 - INFO - Order 562: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:06:14, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 562: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:06:14, shift_id=17
+2025-06-05 01:56:59,044 - INFO - Order 561: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:05:35, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 561: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:05:35, shift_id=17
+2025-06-05 01:56:59,044 - INFO - Order 560: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:02:48, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 560: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 09:02:48, shift_id=17
+2025-06-05 01:56:59,044 - INFO - Order 559: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 08:58:14, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 559: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 08:58:14, shift_id=17
+2025-06-05 01:56:59,044 - INFO - Order 558: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 08:56:54, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 558: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 08:56:54, shift_id=17
+2025-06-05 01:56:59,044 - INFO - Order 557: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 08:54:53, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 557: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 08:54:53, shift_id=17
+2025-06-05 01:56:59,044 - INFO - Order 556: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 08:47:19, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 556: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 08:47:19, shift_id=17
+2025-06-05 01:56:59,045 - INFO - Order 555: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 08:41:52, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 555: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 08:41:52, shift_id=17
+2025-06-05 01:56:59,045 - INFO - Order 554: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 08:39:14, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 554: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 08:39:14, shift_id=17
+2025-06-05 01:56:59,045 - INFO - Order 553: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 08:29:51, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 553: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 08:29:51, shift_id=17
+2025-06-05 01:56:59,045 - INFO - Order 552: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 08:28:27, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 552: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 08:28:27, shift_id=17
+2025-06-05 01:56:59,045 - INFO - Order 551: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 08:23:51, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 551: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 08:23:51, shift_id=17
+2025-06-05 01:56:59,045 - INFO - Order 550: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 08:22:24, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 550: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 08:22:24, shift_id=17
+2025-06-05 01:56:59,045 - INFO - Order 549: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 08:22:06, shift_id=17
+INFO:app.api.v1.endpoints.orders:Order 549: status=OrderStatus.completed, payment_status=paid, time_in=2025-06-04 08:22:06, shift_id=17
+2025-06-05 01:56:59,046 - ERROR - Error processing order 666: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 666: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,047 - ERROR - Error processing order 665: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 665: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,047 - ERROR - Error processing order 664: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 664: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,048 - ERROR - Error processing order 663: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 663: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,049 - ERROR - Error processing order 662: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 662: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,050 - ERROR - Error processing order 661: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 661: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,051 - ERROR - Error processing order 660: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 660: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,052 - ERROR - Error processing order 659: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 659: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,052 - ERROR - Error processing order 658: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 658: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,053 - ERROR - Error processing order 657: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 657: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,054 - ERROR - Error processing order 656: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 656: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,055 - ERROR - Error processing order 655: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 655: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,056 - ERROR - Error processing order 654: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 654: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,056 - ERROR - Error processing order 653: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 653: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,057 - ERROR - Error processing order 652: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 652: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,058 - ERROR - Error processing order 651: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 651: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,059 - ERROR - Error processing order 650: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 650: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,060 - ERROR - Error processing order 649: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 649: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,060 - ERROR - Error processing order 648: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 648: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,061 - ERROR - Error processing order 647: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 647: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,062 - ERROR - Error processing order 646: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 646: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,063 - ERROR - Error processing order 645: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 645: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,064 - ERROR - Error processing order 644: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 644: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,064 - ERROR - Error processing order 643: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 643: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,065 - ERROR - Error processing order 642: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 642: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,066 - ERROR - Error processing order 641: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 641: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,067 - ERROR - Error processing order 640: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 640: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,067 - ERROR - Error processing order 639: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 639: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,068 - ERROR - Error processing order 636: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 636: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,069 - ERROR - Error processing order 635: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 635: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,070 - ERROR - Error processing order 634: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 634: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,070 - ERROR - Error processing order 632: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 632: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,071 - ERROR - Error processing order 631: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 631: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,072 - ERROR - Error processing order 630: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 630: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,073 - ERROR - Error processing order 629: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 629: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,073 - ERROR - Error processing order 628: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 628: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,074 - ERROR - Error processing order 627: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 627: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,075 - ERROR - Error processing order 626: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 626: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,076 - ERROR - Error processing order 625: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 625: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,076 - ERROR - Error processing order 624: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 624: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,077 - ERROR - Error processing order 623: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 623: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,078 - ERROR - Error processing order 622: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 622: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,079 - ERROR - Error processing order 621: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 621: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,079 - ERROR - Error processing order 614: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 614: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,080 - ERROR - Error processing order 609: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 609: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,081 - ERROR - Error processing order 608: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 608: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,082 - ERROR - Error processing order 607: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 607: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,082 - ERROR - Error processing order 605: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 605: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,083 - ERROR - Error processing order 604: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 604: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,084 - ERROR - Error processing order 603: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 603: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,085 - ERROR - Error processing order 602: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 602: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,086 - ERROR - Error processing order 597: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 597: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,086 - ERROR - Error processing order 596: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 596: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,087 - ERROR - Error processing order 595: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 595: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,088 - ERROR - Error processing order 594: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 594: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,089 - ERROR - Error processing order 593: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 593: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,089 - ERROR - Error processing order 592: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 592: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,090 - ERROR - Error processing order 591: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 591: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,091 - ERROR - Error processing order 590: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 590: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,092 - ERROR - Error processing order 589: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 589: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,092 - ERROR - Error processing order 588: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 588: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,093 - ERROR - Error processing order 587: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 587: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,094 - ERROR - Error processing order 586: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 586: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,095 - ERROR - Error processing order 585: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 585: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,095 - ERROR - Error processing order 584: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 584: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,096 - ERROR - Error processing order 583: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 583: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,097 - ERROR - Error processing order 582: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 582: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,098 - ERROR - Error processing order 581: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 581: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,098 - ERROR - Error processing order 580: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 580: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,099 - ERROR - Error processing order 579: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 579: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,100 - ERROR - Error processing order 578: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 578: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,101 - ERROR - Error processing order 577: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 577: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,101 - ERROR - Error processing order 576: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 576: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,102 - ERROR - Error processing order 575: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 575: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,103 - ERROR - Error processing order 574: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 574: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,104 - ERROR - Error processing order 573: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 573: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,104 - ERROR - Error processing order 572: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 572: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,105 - ERROR - Error processing order 571: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 571: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,106 - ERROR - Error processing order 570: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 570: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,107 - ERROR - Error processing order 569: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 569: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,107 - ERROR - Error processing order 568: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 568: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,108 - ERROR - Error processing order 567: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 567: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,109 - ERROR - Error processing order 566: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 566: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,110 - ERROR - Error processing order 565: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 565: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,111 - ERROR - Error processing order 564: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 564: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,111 - ERROR - Error processing order 563: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 563: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,112 - ERROR - Error processing order 562: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 562: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,113 - ERROR - Error processing order 561: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 561: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,114 - ERROR - Error processing order 560: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 560: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,114 - ERROR - Error processing order 559: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 559: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,115 - ERROR - Error processing order 558: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 558: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,116 - ERROR - Error processing order 557: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 557: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,117 - ERROR - Error processing order 556: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 556: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,117 - ERROR - Error processing order 555: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 555: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,118 - ERROR - Error processing order 554: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 554: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,119 - ERROR - Error processing order 553: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 553: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,120 - ERROR - Error processing order 552: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 552: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,121 - ERROR - Error processing order 551: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 551: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,121 - ERROR - Error processing order 550: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 550: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,122 - ERROR - Error processing order 549: 'Order' object has no attribute 'staff_id'
+ERROR:app.api.v1.endpoints.orders:Error processing order 549: 'Order' object has no attribute 'staff_id'
+2025-06-05 01:56:59,122 - INFO - === KẾT THÚC GET ORDERS - Trả về 0 orders ===
+INFO:app.api.v1.endpoints.orders:=== KẾT THÚC GET ORDERS - Trả về 0 orders =

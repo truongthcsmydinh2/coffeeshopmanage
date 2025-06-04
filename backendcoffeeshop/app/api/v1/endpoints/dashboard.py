@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Query, Body, WebSocket, WebSocketDisconnect
 from sqlalchemy.orm import Session
+from app.models import Order, Shift, OrderItem, MenuItem, Table
 from app.database.database import get_db
-from app.database.models import Order, Shift, OrderItem, MenuItem, Table
 from datetime import datetime, timedelta, time
 from typing import Dict
 from sqlalchemy import func
@@ -229,6 +229,14 @@ async def printer_websocket_endpoint(websocket: WebSocket):
 async def print_shift_report(
     date: str = Body(...),
     shift: str = Body(...),
+    staff1_name: str = Body(...),
+    staff1_start_order: int = Body(...),
+    staff1_end_order: int = Body(...),
+    staff1_total: int = Body(...),
+    staff2_name: str = Body(None),
+    staff2_start_order: int = Body(None),
+    staff2_end_order: int = Body(None),
+    staff2_total: int = Body(None),
     db: Session = Depends(get_db)
 ):
     logger = logging.getLogger("uvicorn.error")
@@ -250,9 +258,26 @@ async def print_shift_report(
 
     # Format bill tổng kết ca
     summary_lines = [
-        {"text": "TỔNG KẾT CA", "fontSize": 14, "fontName": "Arial Black", "bold": True, "align": "center"},
+        {"text": "TỔNG KẾT CA", "fontSize": 14, "fontName": "Arial", "bold": True, "align": "center"},
         {"text": f"Ngày: {target_date.strftime('%d/%m/%Y')}", "fontSize": 10, "bold": False, "align": "left"},
-        {"text": f"Ca: {'Ca sáng' if shift_key == 'morning' else 'Ca chiều' if shift_key == 'afternoon' else 'Ca tối'}", "fontSize": 10, "bold": False, "align": "left"},
+        {"text": f"{'Ca sáng' if shift_key == 'morning' else 'Ca chiều' if shift_key == 'afternoon' else 'Ca tối'}", "fontSize": 10, "bold": False, "align": "left"},
+        {"text": "--------------------------------", "fontSize": 16, "bold": False, "align": "left"},
+        # Thông tin nhân viên 1
+        {"text": f"Nhân viên : {staff1_name}", "fontSize": 12, "bold": True, "align": "left"},
+        {"text": f"  Mã order đầu: {staff1_start_order}", "fontSize": 12, "bold": False, "align": "left"},
+        {"text": f"  Mã order cuối: {staff1_end_order}", "fontSize": 12, "bold": False, "align": "left"},
+        {"text": f"  Tổng số order: {staff1_total}", "fontSize": 12, "bold": False, "align": "left"},
+    ]
+    if staff2_name:
+        summary_lines += [
+            {"text": f"Nhân viên : {staff2_name}", "fontSize": 12, "bold": True, "align": "left"},
+            {"text": f"  Mã order đầu: {staff2_start_order}", "fontSize": 12, "bold": False, "align": "left"},
+            {"text": f"  Mã order cuối: {staff2_end_order}", "fontSize": 12, "bold": False, "align": "left"},
+            {"text": f"  Tổng số order: {staff2_total}", "fontSize": 12, "bold": False, "align": "left"},
+        ]
+    summary_lines += [
+        {"text": f"Tổng cộng: {(staff1_total or 0) + (staff2_total or 0)} cuống", "fontSize": 12, "bold": True, "align": "left"},
+        {"text": f"Tổng cuống trên máy: {shift_data['orders']}", "fontSize": 12, "bold": False, "align": "left"},
         {"text": "--------------------------------", "fontSize": 16, "bold": False, "align": "left"},
         {"text": f"Tổng doanh thu: {shift_data['revenue']:,.0f} ₫", "fontSize": 12, "bold": True, "align": "left"},
         {"text": f"Tổng số hóa đơn: {shift_data['orders']}", "fontSize": 12, "bold": False, "align": "left"},

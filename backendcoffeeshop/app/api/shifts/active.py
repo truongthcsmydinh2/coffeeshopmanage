@@ -26,9 +26,14 @@ def get_active_shifts(db: Session = Depends(get_db)):
     # Lấy thông tin nhân viên cho mỗi ca
     result = []
     for shift in active_shifts:
-        staff = db.query(Staff).filter(Staff.id == shift.staff_id).first()
+        # Lấy thông tin nhân viên 1
+        staff1 = db.query(Staff).filter(Staff.id == shift.staff_id).first()
+        # Lấy thông tin nhân viên 2 (nếu có)
+        staff2 = db.query(Staff).filter(Staff.id == shift.staff_id_2).first() if shift.staff_id_2 else None
+        
         shift_dict = shift.__dict__.copy()
-        shift_dict["staff_name"] = staff.name if staff else "Unknown"
+        shift_dict["staff_name"] = staff1.name if staff1 else "Unknown"
+        shift_dict["staff2_name"] = staff2.name if staff2 else None
         result.append(shift_dict)
     
     return result 

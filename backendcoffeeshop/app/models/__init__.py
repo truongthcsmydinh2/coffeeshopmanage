@@ -1,7 +1,5 @@
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session
-
-Base = declarative_base()
+from ..database.database import Base
 
 # Import các model để đảm bảo chúng được đăng ký với Base
 from .menu import MenuGroup, MenuItem

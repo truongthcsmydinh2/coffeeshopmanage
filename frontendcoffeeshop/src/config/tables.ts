@@ -48,5 +48,14 @@ export const tables: Table[] = [
   {"id": 35, "name": "B7", "capacity": null, "status": "occupied", "location": null, "is_active": "1", "note": null, "created_at": "2025-05-08 02:59:58", "updated_at": "2025-05-08 05:03:24"},
   {"id": 36, "name": "B8", "capacity": null, "status": "available", "location": null, "is_active": "1", "note": null, "created_at": "2025-05-08 02:59:58", "updated_at": "2025-05-08 02:59:58"},
   {"id": 37, "name": "B9", "capacity": null, "status": "available", "location": null, "is_active": "1", "note": null, "created_at": "2025-05-08 02:59:58", "updated_at": "2025-05-08 02:59:58"},
-  {"id": 38, "name": "B10", "capacity": null, "status": "available", "location": null, "is_active": "1", "note": null, "created_at": "2025-05-08 02:59:58", "updated_at": "2025-05-08 02:59:58"}
+  {"id": 38, "name": "B10", "capacity": null, "status": "available", "location": null, "is_active": "1", "note": null, "created_at": "2025-05-08 02:59:58", "updated_at": "2025-05-08 02:59:58"},
+  {"id": 39, "name": "15", "capacity": null, "status": "available", "location": null, "is_active": "1", "note": null, "created_at": "2025-05-08 02:59:58", "updated_at": "2025-05-08 02:59:58"},
+  {"id": 40, "name": "16", "capacity": null, "status": "available", "location": null, "is_active": "1", "note": null, "created_at": "2025-05-08 02:59:58", "updated_at": "2025-05-08 02:59:58"},
+  {"id": 41, "name": "17", "capacity": null, "status": "available", "location": null, "is_active": "1", "note": null, "created_at": "2025-05-08 02:59:58", "updated_at": "2025-05-08 02:59:58"},
+  {"id": 42, "name": "18", "capacity": null, "status": "occupied", "location": null, "is_active": "1", "note": null, "created_at": "2025-05-08 02:59:58", "updated_at": "2025-05-08 05:03:24"},
+  {"id": 43, "name": "19", "capacity": null, "status": "available", "location": null, "is_active": "1", "note": null, "created_at": "2025-05-08 02:59:58", "updated_at": "2025-05-08 02:59:58"},
+  {"id": 44, "name": "20", "capacity": null, "status": "available", "location": null, "is_active": "1", "note": null, "created_at": "2025-05-08 02:59:58", "updated_at": "2025-05-08 02:59:58"},
+  {"id": 45, "name": "Mang về", "capacity": null, "status": "available", "location": null, "is_active": "1", "note": null, "created_at": "2025-05-08 02:59:58", "updated_at": "2025-05-08 02:59:58"},
+
+
 ]; 

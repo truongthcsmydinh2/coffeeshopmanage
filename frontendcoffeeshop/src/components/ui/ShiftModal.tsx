@@ -14,18 +14,24 @@ interface ShiftModalProps {
   onClose: () => void
   onOpenShift: (data: {
     staff_id: number
+    staff_id_2?: number
     shift_type: string
     initial_cash?: number
-    order_paper_count: number
+    staff1_start_order_number: number
+    staff2_start_order_number?: number
+    note?: string
   }) => void
 }
 
 export function ShiftModal({ isOpen, onClose, onOpenShift }: ShiftModalProps) {
   const [staff, setStaff] = useState<Staff[]>([])
-  const [selectedStaff, setSelectedStaff] = useState('')
+  const [selectedStaff1, setSelectedStaff1] = useState('')
+  const [selectedStaff2, setSelectedStaff2] = useState('')
   const [shiftType, setShiftType] = useState('morning')
   const [initialCash, setInitialCash] = useState('')
-  const [orderPaperCount, setOrderPaperCount] = useState('')
+  const [staff1StartOrderNumber, setStaff1StartOrderNumber] = useState('')
+  const [staff2StartOrderNumber, setStaff2StartOrderNumber] = useState('')
+  const [note, setNote] = useState('')
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
@@ -68,22 +74,25 @@ export function ShiftModal({ isOpen, onClose, onOpenShift }: ShiftModalProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!selectedStaff) {
-      alert('Vui lòng chọn nhân viên!')
+    if (!selectedStaff1) {
+      alert('Vui lòng chọn nhân viên 1!')
       return
     }
     
-    if (!orderPaperCount) {
-      alert('Vui lòng nhập số cuống order!')
+    if (!staff1StartOrderNumber) {
+      alert('Vui lòng nhập mã cuống order cho nhân viên 1!')
       return
     }
     
     try {
       const shiftData = {
-        staff_id: parseInt(selectedStaff),
+        staff_id: parseInt(selectedStaff1),
+        staff_id_2: selectedStaff2 ? parseInt(selectedStaff2) : undefined,
         shift_type: shiftType,
         initial_cash: initialCash ? parseFloat(initialCash) : undefined,
-        order_paper_count: parseInt(orderPaperCount)
+        staff1_start_order_number: parseInt(staff1StartOrderNumber),
+        staff2_start_order_number: staff2StartOrderNumber ? parseInt(staff2StartOrderNumber) : undefined,
+        note: note || undefined
       }
       
       console.log('Dữ liệu gửi đi:', JSON.stringify(shiftData))
@@ -111,18 +120,18 @@ export function ShiftModal({ isOpen, onClose, onOpenShift }: ShiftModalProps) {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                Nhân viên
+                Nhân viên 1 <span className="text-red-500">*</span>
               </label>
               {isLoading ? (
                 <div className="mt-1 h-10 bg-gray-100 rounded-lg animate-pulse"></div>
               ) : (
                 <select
-                  value={selectedStaff}
-                  onChange={(e) => setSelectedStaff(e.target.value)}
+                  value={selectedStaff1}
+                  onChange={(e) => setSelectedStaff1(e.target.value)}
                   className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
                   required
                 >
-                  <option value="">Chọn nhân viên</option>
+                  <option value="">Chọn nhân viên 1</option>
                   {staff.map((s) => (
                     <option key={s.id} value={s.id}>
                       {s.name}
@@ -131,9 +140,34 @@ export function ShiftModal({ isOpen, onClose, onOpenShift }: ShiftModalProps) {
                 </select>
               )}
             </div>
+            
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                Ca làm việc
+                Nhân viên 2 (tùy chọn)
+              </label>
+              {isLoading ? (
+                <div className="mt-1 h-10 bg-gray-100 rounded-lg animate-pulse"></div>
+              ) : (
+                <select
+                  value={selectedStaff2}
+                  onChange={(e) => setSelectedStaff2(e.target.value)}
+                  className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
+                >
+                  <option value="">Không có / Chọn nhân viên 2</option>
+                  {staff
+                    .filter(s => s.id.toString() !== selectedStaff1)
+                    .map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Ca làm việc <span className="text-red-500">*</span>
               </label>
               <select
                 value={shiftType}
@@ -146,6 +180,7 @@ export function ShiftModal({ isOpen, onClose, onOpenShift }: ShiftModalProps) {
                 <option value="evening">Ca tối</option>
               </select>
             </div>
+            
             <div>
               <label className="block text-sm font-medium text-gray-700">
                 Tiền quỹ ban đầu (tùy chọn)
@@ -158,17 +193,45 @@ export function ShiftModal({ isOpen, onClose, onOpenShift }: ShiftModalProps) {
                 placeholder="Nhập số tiền (nếu có)"
               />
             </div>
+            
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                Số cuống order bắt đầu
+                Số cuống order đầu ca nhân viên 1 <span className="text-red-500">*</span>
               </label>
               <input
                 type="number"
-                value={orderPaperCount}
-                onChange={(e) => setOrderPaperCount(e.target.value)}
+                value={staff1StartOrderNumber}
+                onChange={(e) => setStaff1StartOrderNumber(e.target.value)}
                 className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
                 required
-                placeholder="Nhập số cuống order bắt đầu"
+                placeholder="Nhập số cuống order bắt đầu cho nhân viên 1"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Số cuống order đầu ca nhân viên 2 (nếu có)
+              </label>
+              <input
+                type="number"
+                value={staff2StartOrderNumber}
+                onChange={(e) => setStaff2StartOrderNumber(e.target.value)}
+                disabled={!selectedStaff2}
+                className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
+                placeholder="Nhập số cuống order bắt đầu cho nhân viên 2"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Ghi chú
+              </label>
+              <textarea
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
+                placeholder="Ghi chú (nếu có)"
+                rows={3}
               />
             </div>
           </div>
@@ -191,4 +254,4 @@ export function ShiftModal({ isOpen, onClose, onOpenShift }: ShiftModalProps) {
       </div>
     </div>
   )
-} 
+}

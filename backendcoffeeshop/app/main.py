@@ -1,9 +1,10 @@
 from fastapi import FastAPI, Depends, HTTPException, status, Body, WebSocket, WebSocketDisconnect
 from sqlalchemy.orm import Session
 from typing import List, Dict
-from . import crud, models, schemas
+from . import crud, schemas
+from .models import Order, OrderItem, MenuItem, Table, Shift, Staff, StaffRole, StaffAttendance, StaffPerformance, StaffSchedule, Product, ProductPerformance, MenuGroup, Promotion, Payment
 from .database.database import engine, get_db, Base, init_all
-from .database.models import OrderStatus, Order, Table, Staff, Shift, Payment, StaffStatus
+from .database.models import OrderStatus, TableStatus, StaffStatus, ShiftType
 from datetime import datetime, timedelta, date
 from sqlalchemy import func, extract
 from fastapi.middleware.cors import CORSMiddleware
@@ -14,6 +15,7 @@ from .api.shifts.current import router as shifts_current_router
 from .api.shifts.create import router as shifts_create_router
 from .api.shifts.active import router as shifts_active_router
 from .api.shifts.close import router as shifts_close_router
+from .api.shifts.update import router as shifts_update_router
 from .api.v1.endpoints.orders import router as orders_router
 from .api.v1.endpoints import cancelled_items
 from sqlalchemy.exc import IntegrityError
@@ -133,6 +135,7 @@ app.include_router(shifts_current_router, prefix="/api/shifts", tags=["shifts"])
 app.include_router(shifts_create_router, prefix="/api/shifts", tags=["shifts"])
 app.include_router(shifts_active_router, prefix="/api/shifts", tags=["shifts"])
 app.include_router(shifts_close_router, prefix="/api/shifts", tags=["shifts"])
+app.include_router(shifts_update_router, prefix="/api/shifts", tags=["shifts"])
 app.include_router(dashboard_router, prefix="/api/v1/endpoints/dashboard", tags=["dashboard"])
 app.include_router(cancelled_items.router, prefix="/api/v1/endpoints/cancelled-items", tags=["cancelled-items"])
 
@@ -551,22 +554,22 @@ def read_orders(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
         for order in orders:
             # Lấy thông tin items của order, chỉ lấy các cột cần thiết
             items = db.query(
-                models.OrderItem.id,
-                models.OrderItem.order_id,
-                models.OrderItem.menu_item_id,
-                models.OrderItem.quantity,
-                models.OrderItem.unit_price,
-                models.OrderItem.total_price,
-                models.OrderItem.note
+                OrderItem.id,
+                OrderItem.order_id,
+                OrderItem.menu_item_id,
+                OrderItem.quantity,
+                OrderItem.unit_price,
+                OrderItem.total_price,
+                OrderItem.note
             ).filter(
-                models.OrderItem.order_id == order.id
+                OrderItem.order_id == order.id
             ).all()
             
             # Chuyển đổi items thành dict
             items_dict = []
             for item in items:
-                menu_item = db.query(models.MenuItem).filter(
-                    models.MenuItem.id == item.menu_item_id
+                menu_item = db.query(MenuItem).filter(
+                    MenuItem.id == item.menu_item_id
                 ).first()
                 
                 items_dict.append({
@@ -611,7 +614,7 @@ def read_order(order_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Order not found")
     # Gán tên món cho từng item
     for item in db_order.items:
-        menu_item = db.query(models.MenuItem).filter(models.MenuItem.id == item.menu_item_id).first()
+        menu_item = db.query(MenuItem).filter(MenuItem.id == item.menu_item_id).first()
         item.name = menu_item.name if menu_item else ""
     return db_order
 
@@ -631,7 +634,7 @@ def delete_order(order_id: int, db: Session = Depends(get_db)):
 
 @app.get("/orders/active", response_model=List[schemas.OrderResponse])
 def get_active_orders(db: Session = Depends(get_db)):
-    return db.query(models.Order).filter(models.Order.status.in_(["pending", "active"])).all()
+    return db.query(Order).filter(Order.status.in_(["pending", "active"])).all()
 
 # Payment Endpoints
 @app.post("/payments/", response_model=schemas.Payment)
@@ -720,17 +723,17 @@ def get_revenue(db: Session = Depends(get_db)):
     end_of_day = datetime.combine(today, datetime.max.time())
 
     # Get actual revenue (completed payments)
-    actual_revenue = db.query(models.Payment).filter(
-        models.Payment.payment_time >= start_of_day,
-        models.Payment.payment_time <= end_of_day
-    ).with_entities(func.sum(models.Payment.total_amount)).scalar() or 0
+    actual_revenue = db.query(Payment).filter(
+        Payment.payment_time >= start_of_day,
+        Payment.payment_time <= end_of_day
+    ).with_entities(func.sum(Payment.total_amount)).scalar() or 0
 
     # Get estimated revenue (pending orders)
-    estimated_revenue = db.query(models.Order).filter(
-        models.Order.time_in >= start_of_day,
-        models.Order.time_in <= end_of_day,
-        models.Order.status == "pending"
-    ).with_entities(func.sum(models.OrderItem.quantity * models.OrderItem.unit_price)).scalar() or 0
+    estimated_revenue = db.query(Order).filter(
+        Order.time_in >= start_of_day,
+        Order.time_in <= end_of_day,
+        Order.status == "pending"
+    ).with_entities(func.sum(OrderItem.quantity * OrderItem.unit_price)).scalar() or 0
 
     return {
         "actual_revenue": actual_revenue,
@@ -744,10 +747,10 @@ def get_cancelled_orders(db: Session = Depends(get_db)):
     start_of_day = datetime.combine(today, datetime.min.time())
     end_of_day = datetime.combine(today, datetime.max.time())
 
-    cancelled_orders = db.query(models.Order).filter(
-        models.Order.time_in >= start_of_day,
-        models.Order.time_in <= end_of_day,
-        models.Order.status == "cancelled"
+    cancelled_orders = db.query(Order).filter(
+        Order.time_in >= start_of_day,
+        Order.time_in <= end_of_day,
+        Order.status == "cancelled"
     ).count()
 
     return {"cancelled_orders": cancelled_orders}
@@ -759,11 +762,11 @@ def get_revenue_by_hour(db: Session = Depends(get_db)):
     end_of_day = datetime.combine(today, datetime.max.time())
 
     revenue_by_hour = db.query(
-        extract('hour', models.Payment.payment_time).label('hour'),
-        func.sum(models.Payment.total_amount).label('revenue')
+        extract('hour', Payment.payment_time).label('hour'),
+        func.sum(Payment.total_amount).label('revenue')
     ).filter(
-        models.Payment.payment_time >= start_of_day,
-        models.Payment.payment_time <= end_of_day
+        Payment.payment_time >= start_of_day,
+        Payment.payment_time <= end_of_day
     ).group_by('hour').all()
 
     return [{"hour": r.hour, "revenue": r.revenue} for r in revenue_by_hour]
@@ -775,17 +778,17 @@ def get_revenue_by_group(db: Session = Depends(get_db)):
     end_of_day = datetime.combine(today, datetime.max.time())
 
     revenue_by_group = db.query(
-        models.MenuGroup.name.label('group_name'),
-        func.sum(models.OrderItem.quantity * models.OrderItem.unit_price).label('revenue')
+        MenuGroup.name.label('group_name'),
+        func.sum(OrderItem.quantity * OrderItem.unit_price).label('revenue')
     ).join(
-        models.MenuItem, models.MenuItem.group_id == models.MenuGroup.id
+        MenuItem, MenuItem.group_id == MenuGroup.id
     ).join(
-        models.OrderItem, models.OrderItem.menu_item_id == models.MenuItem.id
+        OrderItem, OrderItem.menu_item_id == MenuItem.id
     ).join(
-        models.Order, models.Order.id == models.OrderItem.order_id
+        Order, Order.id == OrderItem.order_id
     ).filter(
-        models.Order.time_in >= start_of_day,
-        models.Order.time_in <= end_of_day
+        Order.time_in >= start_of_day,
+        Order.time_in <= end_of_day
     ).group_by('group_name').all()
 
     return [{"group_name": r.group_name, "revenue": r.revenue} for r in revenue_by_group]
@@ -1056,22 +1059,22 @@ def get_payment_summary(db: Session = Depends(get_db)):
 
     # Tổng doanh thu theo phương thức thanh toán
     payment_method_summary = db.query(
-        models.Payment.payment_method,
-        func.sum(models.Payment.total_amount).label('total_amount'),
-        func.count(models.Payment.id).label('count')
+        Payment.payment_method,
+        func.sum(Payment.total_amount).label('total_amount'),
+        func.count(Payment.id).label('count')
     ).filter(
-        models.Payment.payment_time >= start_of_day,
-        models.Payment.payment_time <= end_of_day
-    ).group_by(models.Payment.payment_method).all()
+        Payment.payment_time >= start_of_day,
+        Payment.payment_time <= end_of_day
+    ).group_by(Payment.payment_method).all()
 
     # Tổng doanh thu theo giờ
     hourly_summary = db.query(
-        extract('hour', models.Payment.payment_time).label('hour'),
-        func.sum(models.Payment.total_amount).label('total_amount'),
-        func.count(models.Payment.id).label('count')
+        extract('hour', Payment.payment_time).label('hour'),
+        func.sum(Payment.total_amount).label('total_amount'),
+        func.count(Payment.id).label('count')
     ).filter(
-        models.Payment.payment_time >= start_of_day,
-        models.Payment.payment_time <= end_of_day
+        Payment.payment_time >= start_of_day,
+        Payment.payment_time <= end_of_day
     ).group_by('hour').all()
 
     return {

@@ -601,4 +601,34 @@ def delete_product_performance(db: Session, product_performance_id: int):
     if db_product_performance:
         db.delete(db_product_performance)
         db.commit()
-    return db_product_performance 
+    return db_product_performance
+
+# OrderItem CRUD
+def get_order_item(db: Session, order_item_id: int):
+    return db.query(models.OrderItem).filter(models.OrderItem.id == order_item_id).first()
+
+def get_order_items(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(models.OrderItem).offset(skip).limit(limit).all()
+
+def create_order_item(db: Session, order_item: schemas.OrderItemCreate):
+    db_order_item = models.OrderItem(**order_item.dict())
+    db.add(db_order_item)
+    db.commit()
+    db.refresh(db_order_item)
+    return db_order_item
+
+def update_order_item(db: Session, order_item_id: int, order_item: schemas.OrderItemCreate):
+    db_order_item = get_order_item(db, order_item_id)
+    if db_order_item:
+        for key, value in order_item.dict().items():
+            setattr(db_order_item, key, value)
+        db.commit()
+        db.refresh(db_order_item)
+    return db_order_item
+
+def delete_order_item(db: Session, order_item_id: int):
+    db_order_item = get_order_item(db, order_item_id)
+    if db_order_item:
+        db.delete(db_order_item)
+        db.commit()
+    return db_order_item 

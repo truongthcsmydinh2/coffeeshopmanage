@@ -5,6 +5,7 @@ from . import Base
 
 class Order(Base):
     __tablename__ = "orders"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True, index=True)
     table_id = Column(Integer, ForeignKey("tables.id"))
@@ -20,17 +21,19 @@ class Order(Base):
     payment_status = Column(String(20))  # unpaid, paid, refunded
     note = Column(String(200))
     order_code = Column(String(50), unique=True, index=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    time_in = Column(DateTime, default=datetime.utcnow)
+    time_out = Column(DateTime, nullable=True)
 
     table = relationship("Table", back_populates="orders")
     staff = relationship("Staff", back_populates="orders")
+    shift = relationship("Shift", back_populates="orders")
     promotion = relationship("Promotion", back_populates="orders")
     items = relationship("OrderItem", back_populates="order")
     payments = relationship("Payment", back_populates="order")
 
 class OrderItem(Base):
     __tablename__ = "order_items"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True, index=True)
     order_id = Column(Integer, ForeignKey("orders.id"))
@@ -39,14 +42,13 @@ class OrderItem(Base):
     unit_price = Column(Float)
     total_price = Column(Float)
     note = Column(String(200))
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     order = relationship("Order", back_populates="items")
     menu_item = relationship("MenuItem")
 
 class Payment(Base):
     __tablename__ = "payments"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True, index=True)
     order_id = Column(Integer, ForeignKey("orders.id"))

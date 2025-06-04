@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useRef } from 'react'
 import { ShiftModal } from '@/components/ui/ShiftModal'
+import { CloseShiftModal } from '@/components/ui/CloseShiftModal'
+import { ShiftInfoPanel } from '@/components/ui/ShiftInfoPanel'
 import { FaSpinner, FaCog, FaHome, FaSignOutAlt, FaTable, FaClipboardList, FaUserClock, FaPrint } from 'react-icons/fa'
 import { TableGrid } from '@/components/order/TableGrid'
 import { OrderList } from '@/components/order/OrderList'
@@ -10,17 +12,27 @@ import { useRouter } from 'next/navigation'
 interface Shift {
   id: number
   staff_id: number
+  staff_id_2?: number
   staff_name: string
+  staff2_name?: string
   shift_type: string
   start_time: string
   end_time: string | null
   initial_cash: number | null
-  order_paper_count: number
-  end_order_paper_count: number | null
+  end_cash: number | null
+  staff1_start_order_number: number | null
+  staff1_end_order_number: number | null
+  staff1_calculated_total_orders: number | null
+  staff2_start_order_number: number | null
+  staff2_end_order_number: number | null
+  staff2_calculated_total_orders: number | null
+  total_shift_orders: number | null
   status: string
+  note: string | null
+  is_active: boolean
 }
 
-type DropdownOption = 'logout' | 'settings'
+type DropdownOption = 'logout' | 'settings' | 'all-orders'
 type TabType = 'home' | 'order' | 'shift'
 
 interface Table {
@@ -41,7 +53,8 @@ interface MenuItem {
 
 export default function OrderPage() {
   const [currentShift, setCurrentShift] = useState<Shift | null>(null)
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isShiftModalOpen, setIsShiftModalOpen] = useState(false)
+  const [isCloseShiftModalOpen, setIsCloseShiftModalOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [showSettings, setShowSettings] = useState(false)
   const [activeTab, setActiveTab] = useState<TabType>('home')
@@ -83,7 +96,7 @@ export default function OrderPage() {
         if (data) {
           // Ca làm việc hiện tại
           setCurrentShift(data)
-          setIsModalOpen(false)
+          setIsShiftModalOpen(false)
         } else {
           // Không có ca làm việc, mở modal để tạo ca mới
           await checkActiveShifts()
@@ -112,26 +125,29 @@ export default function OrderPage() {
         if (data.length > 0) {
           // Nếu có ca đang mở, lấy ca đầu tiên
           setCurrentShift(data[0])
-          setIsModalOpen(false)
+          setIsShiftModalOpen(false)
         } else {
           // Không có ca đang mở, mở modal để tạo ca mới
-          setIsModalOpen(true)
+          setIsShiftModalOpen(true)
         }
       } else {
         // Lỗi khi lấy danh sách ca đang mở, mở modal để tạo ca mới
-        setIsModalOpen(true)
+        setIsShiftModalOpen(true)
       }
     } catch (error) {
       console.error('Lỗi khi kiểm tra ca đang mở:', error)
-      setIsModalOpen(true)
+      setIsShiftModalOpen(true)
     }
   }
 
   const handleOpenShift = async (data: {
     staff_id: number
+    staff_id_2?: number
     shift_type: string
     initial_cash?: number
-    order_paper_count: number
+    staff1_start_order_number: number
+    staff2_start_order_number?: number
+    note?: string
   }) => {
     try {
       console.log('Gửi yêu cầu mở ca làm việc:', data)
@@ -163,7 +179,7 @@ export default function OrderPage() {
       console.log('Dữ liệu ca mới:', newShift)
       
       setCurrentShift(newShift)
-      setIsModalOpen(false)
+      setIsShiftModalOpen(false)
       alert('Đã mở ca làm việc thành công!')
     } catch (error) {
       console.error('Lỗi mở ca:', error)
@@ -171,26 +187,57 @@ export default function OrderPage() {
     }
   }
 
-  const handleCloseShift = async () => {
+  const handleUpdateShift = async (data: {
+    end_cash?: number
+    staff1_end_order_number?: number
+    staff2_end_order_number?: number
+    note?: string
+  }) => {
     if (!currentShift) return
     
-    // Yêu cầu người dùng nhập số cuống order kết thúc
-    const endOrderPaperCount = prompt(`Vui lòng nhập số cuống order kết thúc (phải lớn hơn ${currentShift.order_paper_count}):`)
-    
-    if (!endOrderPaperCount) {
-      return // Người dùng đã hủy
+    try {
+      console.log('Gửi yêu cầu cập nhật ca làm việc:', data)
+      
+      const response = await fetch(`http://192.168.99.166:8000/api/shifts/${currentShift.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('API error response:', errorText)
+        alert('Có lỗi xảy ra khi cập nhật ca. Vui lòng thử lại.')
+        return
+      }
+
+      const updatedShift = await response.json()
+      console.log('Dữ liệu ca đã cập nhật:', updatedShift)
+      
+      setCurrentShift(updatedShift)
+      alert('Đã cập nhật thông tin ca làm việc thành công!')
+      
+      return updatedShift
+    } catch (error) {
+      console.error('Lỗi cập nhật ca:', error)
+      alert('Có lỗi xảy ra khi cập nhật ca. Vui lòng thử lại.')
     }
-    
-    const endOrderPaperCountNumber = parseInt(endOrderPaperCount)
-    if (isNaN(endOrderPaperCountNumber) || endOrderPaperCountNumber <= currentShift.order_paper_count) {
-      alert(`Số cuống order kết thúc phải là số và phải lớn hơn số cuống order bắt đầu (${currentShift.order_paper_count})`)
-      return
-    }
-    
-    // Hỏi người dùng xác nhận
-    if (!confirm('Bạn có chắc chắn muốn đóng ca làm việc hiện tại không?')) {
-      return
-    }
+  }
+
+  const handleCloseShiftRequest = () => {
+    if (!currentShift) return
+    setIsCloseShiftModalOpen(true)
+  }
+  
+  const handleCloseShift = async (data: {
+    end_cash?: number
+    staff1_end_order_number?: number
+    staff2_end_order_number?: number
+    note?: string
+  }) => {
+    if (!currentShift) return
     
     try {
       console.log('Gửi yêu cầu đóng ca làm việc:', currentShift.id)
@@ -200,11 +247,7 @@ export default function OrderPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          status: 'closed',
-          is_active: false,
-          end_order_paper_count: endOrderPaperCountNumber
-        }),
+        body: JSON.stringify(data),
       })
 
       if (!response.ok) {
@@ -248,276 +291,158 @@ export default function OrderPage() {
     // ...
   ];
 
-  // Khi chọn bàn trống, mở modal và fetch menu
-  const handleTableClick = (table: Table) => {
-    if (table.status === 'empty') {
+  const handleTableClick = (tableId: number) => {
+    const table = tables.find(t => t.id === tableId)
+    if (table) {
       setSelectedTable(table)
-      fetchMenuItems()
     }
+    // Mở modal tạo hóa đơn cho bàn
+    // setOrderModalOpen(true)
   }
 
-  // Đóng modal
   const handleCloseModal = () => {
     setSelectedTable(null)
-    setMenuItems([])
-    setErrorMenu(null)
+    // setOrderModalOpen(false)
   }
 
-  // Thêm hàm in biên bản đóng ca
-  const handlePrintShiftReport = async () => {
-    if (!currentShift) return;
-    try {
-      const date = currentShift.start_time.slice(0, 10);
-      const shift = currentShift.shift_type.toLowerCase();
-      const response = await fetch('http://192.168.99.166:8000/api/v1/endpoints/dashboard/print-shift-report', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ date, shift })
-      });
-      const data = await response.json();
-      if (response.ok && data.success) {
-        alert('Đã gửi biên bản đóng ca tới máy in!');
-      } else {
-        alert(data.message || 'Có lỗi khi gửi biên bản tới máy in!');
+  const handleSettingsClick = (option: DropdownOption) => {
+    if (option === 'logout') {
+      if (confirm('Bạn có chắc chắn muốn đăng xuất không?')) {
+        router.push('/login')
       }
-    } catch (error) {
-      alert('Có lỗi xảy ra khi gửi biên bản tới máy in!');
+    } else if (option === 'settings') {
+      router.push('/settings')
+    } else if (option === 'all-orders') {
+      router.push('/all-orders')
     }
+  }
+
+  const handlePrintShiftReport = async () => {
+    if (!currentShift) return
+    alert('Đang in báo cáo ca...')
+    // Thêm logic in báo cáo ca ở đây
   }
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <FaSpinner className="w-8 h-8 text-primary-600 animate-spin" />
-      </div>
-    )
-  }
-
-  // Render thông tin ca làm việc 
-  const renderShiftInfo = () => {
-    if (!currentShift) return null;
-    
-    // Định dạng ngày và giờ
-    const formatDate = (dateString: string) => {
-      const date = new Date(dateString);
-      return new Intl.DateTimeFormat('vi-VN', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-      }).format(date);
-    };
-    
-    const formatTime = (dateString: string) => {
-      const date = new Date(dateString);
-      return new Intl.DateTimeFormat('vi-VN', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
-      }).format(date);
-    };
-    
-    return (
-      <div className="bg-white rounded-xl shadow-lg p-6">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-          Thông tin ca làm việc
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-          <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-sm text-gray-500">Nhân viên</p>
-            <p className="text-lg font-medium text-gray-900">
-              {currentShift.staff_name}
-            </p>
-          </div>
-          <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-sm text-gray-500">Ca làm việc</p>
-            <p className="text-lg font-medium text-gray-900">
-              {currentShift.shift_type === 'morning'
-                ? 'Ca sáng'
-                : currentShift.shift_type === 'afternoon'
-                ? 'Ca chiều'
-                : 'Ca tối'}
-            </p>
-          </div>
-          <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-sm text-gray-500">Ngày mở ca</p>
-            <p className="text-lg font-medium text-gray-900">
-              {formatDate(currentShift.start_time)}
-            </p>
-          </div>
-          <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-sm text-gray-500">Thời gian mở ca</p>
-            <p className="text-lg font-medium text-gray-900">
-              {formatTime(currentShift.start_time)}
-            </p>
-          </div>
-          <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-sm text-gray-500">Tiền quỹ ban đầu</p>
-            <p className="text-lg font-medium text-gray-900">
-              {currentShift.initial_cash
-                ? new Intl.NumberFormat('vi-VN', {
-                    style: 'currency',
-                    currency: 'VND',
-                  }).format(currentShift.initial_cash)
-                : 'Chưa có'}
-            </p>
-          </div>
-          <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-sm text-gray-500">Số cuống order bắt đầu</p>
-            <p className="text-lg font-medium text-gray-900">
-              {currentShift.order_paper_count}
-            </p>
-          </div>
-        </div>
-        
-        <div className="flex justify-end space-x-2">
-          <button
-            onClick={handlePrintShiftReport}
-            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center"
-          >
-            <FaPrint className="mr-2" />
-            In biên bản đóng ca
-          </button>
-          <button
-            onClick={handleCloseShift}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-          >
-            Đóng ca
-          </button>
-        </div>
+      <div className="flex flex-col h-screen justify-center items-center bg-gray-100">
+        <FaSpinner className="animate-spin text-4xl text-primary-600 mb-4" />
+        <p className="text-gray-600">Đang tải thông tin ca làm việc...</p>
       </div>
     )
   }
 
   return (
-    <div className="p-6">
-      {!currentShift ? (
-        <ShiftModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          onOpenShift={handleOpenShift}
+    <div className="min-h-screen bg-gray-100">
+      {/* Modal mở ca */}
+      <ShiftModal
+        isOpen={isShiftModalOpen}
+        onClose={() => setIsShiftModalOpen(false)}
+        onOpenShift={handleOpenShift}
+      />
+      
+      {/* Modal đóng ca */}
+      {currentShift && (
+        <CloseShiftModal
+          isOpen={isCloseShiftModalOpen}
+          onClose={() => setIsCloseShiftModalOpen(false)}
+          currentShift={currentShift}
+          onCloseShift={handleCloseShift}
         />
-      ) : (
-        <>
-          {/* Sắp xếp lại phần nút bánh răng và tab */}
-          <div className="flex justify-between items-center mb-6">
-            <div className="flex border-b border-gray-200 flex-grow">
-              <button
-                onClick={() => setActiveTab('home')}
-                className={`py-3 px-6 flex items-center font-medium text-sm focus:outline-none ${
-                  activeTab === 'home'
-                    ? 'text-primary-600 border-b-2 border-primary-600'
-                    : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <FaTable className="mr-2" /> Sơ đồ bàn
-              </button>
-              <button
-                onClick={() => setActiveTab('order')}
-                className={`py-3 px-6 flex items-center font-medium text-sm focus:outline-none ${
-                  activeTab === 'order'
-                    ? 'text-primary-600 border-b-2 border-primary-600'
-                    : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <FaClipboardList className="mr-2" /> Danh sách Order
-              </button>
-              <button
-                onClick={() => setActiveTab('shift')}
-                className={`py-3 px-6 flex items-center font-medium text-sm focus:outline-none ${
-                  activeTab === 'shift'
-                    ? 'text-primary-600 border-b-2 border-primary-600'
-                    : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <FaUserClock className="mr-2" /> Thông tin ca
-              </button>
-            </div>
-            
-            <div ref={settingsRef} className="relative">
-              <button 
-                onClick={() => setShowSettings(!showSettings)}
-                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-              >
-                <FaCog className="w-6 h-6 text-gray-600" />
-              </button>
-              
-              {/* Dropdown menu */}
-              {showSettings && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
-                  <button
-                    onClick={() => router.push('/functions')}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    <FaHome className="inline-block mr-2" /> Trang chủ
-                  </button>
-                  <button
-                    onClick={() => router.push('/all-orders')}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    <FaClipboardList className="inline-block mr-2" /> Tất cả order trong ngày
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (window.confirm('Bạn có chắc chắn muốn đăng xuất không?')) {
-                        router.push('/functions');
-                      }
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    <FaSignOutAlt className="inline-block mr-2" /> Đăng xuất
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
+      )}
 
-          {/* Tab Content */}
-          <div>
-            {activeTab === 'home' ? (
-              <div className="grid grid-cols-1 gap-6">
-                <TableGrid />
-              </div>
-            ) : activeTab === 'order' ? (
-              <div className="grid grid-cols-1 gap-6">
-                <OrderList />
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 gap-6">
-                {renderShiftInfo()}
+      {/* Header */}
+      <header className="bg-white shadow-md px-4 py-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <h1 className="text-xl font-bold text-gray-900">
+              Coffee Shop Manager
+            </h1>
+          </div>
+          <div className="relative" ref={settingsRef}>
+            <button
+              onClick={() => setShowSettings(!showSettings)}
+              className="p-2 rounded-full hover:bg-gray-100"
+            >
+              <FaCog className="text-gray-600" />
+            </button>
+            {showSettings && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 py-1">
+                <button
+                  onClick={() => handleSettingsClick('settings')}
+                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                >
+                  Cài đặt
+                </button>
+                <button
+                  onClick={() => handleSettingsClick('all-orders')}
+                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                >
+                  Danh sách order
+                </button>
+                <button
+                  onClick={() => handleSettingsClick('logout')}
+                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                >
+                  Đăng xuất
+                </button>
               </div>
             )}
           </div>
+        </div>
+      </header>
 
-          {/* Modal order món */}
-          {selectedTable && (
-            <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-              <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-2xl relative">
-                <button onClick={handleCloseModal} className="absolute top-2 right-2 text-gray-500 hover:text-red-600 text-xl">×</button>
-                <h2 className="text-xl font-bold mb-4">Order cho {selectedTable.name}</h2>
-                {loadingMenu ? (
-                  <div>Đang tải dữ liệu món...</div>
-                ) : errorMenu ? (
-                  <div className="text-red-600">{errorMenu}</div>
-                ) : (
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {menuItems.map(item => (
-                      <div key={item.id} className="border rounded-lg p-4 shadow hover:shadow-lg transition">
-                        <div className="font-semibold">{item.name}</div>
-                        <div className="text-sm text-gray-500">{item.code}</div>
-                        <div className="text-sm">Đơn vị: {item.unit}</div>
-                        <div className="text-primary-700 font-bold">{item.price.toLocaleString('vi-VN')} ₫</div>
-                        {/* ... nút chọn/thêm vào order ... */}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </>
-      )}
+      <main className="container mx-auto p-4">
+        {/* Tab navigation */}
+        <div className="bg-white rounded-xl shadow-lg p-4 mb-6">
+          <nav className="flex border-b border-gray-200">
+            <button
+              className={`px-4 py-2 text-sm font-medium ${
+                activeTab === 'home'
+                  ? 'border-b-2 border-primary-600 text-primary-600'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+              onClick={() => setActiveTab('home')}
+            >
+              <FaTable className="inline-block mr-1" /> Sơ đồ bàn
+            </button>
+            <button
+              className={`px-4 py-2 text-sm font-medium ${
+                activeTab === 'order'
+                  ? 'border-b-2 border-primary-600 text-primary-600'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+              onClick={() => setActiveTab('order')}
+            >
+              <FaClipboardList className="inline-block mr-1" /> Danh sách đơn
+            </button>
+            <button
+              className={`px-4 py-2 text-sm font-medium ${
+                activeTab === 'shift'
+                  ? 'border-b-2 border-primary-600 text-primary-600'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+              onClick={() => setActiveTab('shift')}
+            >
+              <FaUserClock className="inline-block mr-1" /> Thông tin ca
+            </button>
+          </nav>
+
+          <div className="mt-4">
+            {activeTab === 'home' && (
+              <TableGrid onTableSelect={handleTableClick} />
+            )}
+            {activeTab === 'order' && <OrderList />}
+            {activeTab === 'shift' && currentShift && (
+              <ShiftInfoPanel
+                currentShift={currentShift}
+                onUpdate={handleUpdateShift}
+                onCloseShift={handleCloseShiftRequest}
+              />
+            )}
+          </div>
+        </div>
+      </main>
     </div>
   )
-} 
+}

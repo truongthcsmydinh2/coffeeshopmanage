@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
+from ..database.database import Base, engine
 
 # Lấy thông tin kết nối từ biến môi trường hoặc sử dụng giá trị mặc định
 DB_USER = os.getenv("DB_USER", "postgres")
@@ -18,9 +18,6 @@ engine = create_engine(SQLALCHEMY_DATABASE_URL)
 
 # Tạo SessionLocal
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# Tạo Base class
-Base = declarative_base()
 
 # Dependency để lấy database session
 def get_db():
