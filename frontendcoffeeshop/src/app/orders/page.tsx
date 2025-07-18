@@ -10,10 +10,10 @@ import { format } from "date-fns";
 import { CalendarIcon, Search, Filter, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Order } from "@/types/order";
-import { OrderList } from "@/components/orders/OrderList";
-import { OrderDetails } from "@/components/orders/OrderDetails";
-import { OrderActions } from "@/components/orders/OrderActions";
-import { OrderStats } from "@/components/orders/OrderStats";
+import { OrderList } from "@/components/order/OrderList";
+import { OrderDetails } from "@/components/order/OrderDetails";
+import { OrderActions } from "@/components/order/OrderActions";
+import { OrderStats } from "@/components/order/OrderStats";
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -35,7 +35,17 @@ export default function OrdersPage() {
       const dateStr = selectedDate ? format(selectedDate, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd");
       console.log("Fetching orders for date:", dateStr);
       
-      const response = await fetch(`/api/orders?date=${dateStr}`);
+      const response = await fetch(`http://192.168.99.166:8000/api/v1/complete-orders/?date=${dateStr}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Origin': 'http://192.168.99.166:3001'
+        },
+        mode: 'cors',
+        credentials: 'include'
+      });
+      
       if (!response.ok) throw new Error("Failed to fetch orders");
       
       const data = await response.json();

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { FaChartPie, FaMoneyBillWave, FaReceipt, FaUsers, FaClock, FaCoffee, FaHome, FaCalendarAlt, FaSmoking, FaPrint } from 'react-icons/fa'
-import { Card } from '@/components/ui/Card'
+import { Card } from '@/components/ui/card'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { useRouter } from 'next/navigation'
 import DashboardStats from '@/components/dashboard/DashboardStats'
@@ -188,8 +188,13 @@ export default function DashboardPage() {
             {error || errorCigarettes}
           </div>
         )}
-
-        {/* Date Picker */}
+        {/* phan chon ngay xem thong ke
+        <button
+            onClick={() => setSelectedDate(getToday())}
+            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+          >
+            Hôm nay
+          </button>
         <div className="flex items-center space-x-4 mb-8">
           <div className="relative">
             <input
@@ -200,13 +205,8 @@ export default function DashboardPage() {
             />
             <FaCalendarAlt className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
           </div>
-          <button
-            onClick={() => setSelectedDate(getToday())}
-            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-          >
-            Hôm nay
-          </button>
         </div>
+        */}
 
         {/* Stats Cards */}
         <DashboardStats stats={stats} loading={loadingStats} error={error} />

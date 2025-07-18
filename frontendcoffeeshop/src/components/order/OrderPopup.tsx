@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { FaPlus, FaMinus, FaTrash, FaCut } from 'react-icons/fa'
+import { FaPlus, FaMinus, FaTrash, FaCut, FaSearch } from 'react-icons/fa'
 import { toast } from 'react-hot-toast'
 
 interface MenuItem {
@@ -75,6 +75,7 @@ export function OrderPopup({ tableId, tableName, onClose, onOrderCreated }: Orde
   const [menuGroups, setMenuGroups] = useState<MenuGroup[]>([])
   const [orderItems, setOrderItems] = useState<OrderItem[]>([])
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [noteText, setNoteText] = useState('')
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false)
@@ -169,20 +170,29 @@ export function OrderPopup({ tableId, tableName, onClose, onOrderCreated }: Orde
     }
   }, [onClose, onOrderCreated])
 
-  const filteredItems = selectedGroupId
-    ? menuItems.filter((item: MenuItem) => item.group_id === selectedGroupId)
-    : menuItems
+  // Filter items based on search query and selected group
+  const filteredItems = (menuItems || []).filter((item: MenuItem) => {
+    const matchesSearch = searchQuery === '' || 
+      (item.name && item.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (item.code && item.code.toLowerCase().includes(searchQuery.toLowerCase()))
+    
+    // Nếu có search query, tìm kiếm trên toàn bộ menu
+    // Nếu không có search query, chỉ lọc theo nhóm đã chọn
+    const matchesGroup = searchQuery === '' ? (!selectedGroupId || item.group_id === selectedGroupId) : true
+    
+    return matchesSearch && matchesGroup
+  })
 
   const addToOrder = (item: MenuItem) => {
-    const existing = orderItems.find(o => o.menuItemId === item.id)
+    const existing = (orderItems || []).find(o => o.menuItemId === item.id)
     if (existing) {
       updateItemQuantity(existing.id, existing.quantity + 1)
     } else {
-      setOrderItems([...orderItems, {
+      setOrderItems([...(orderItems || []), {
         id: Date.now(),
         menuItemId: item.id,
-        name: item.name,
-        price: item.price,
+        name: item.name || '',
+        price: item.price || 0,
         quantity: 1,
         note: ''
       }])
@@ -191,59 +201,52 @@ export function OrderPopup({ tableId, tableName, onClose, onOrderCreated }: Orde
 
   const updateItemQuantity = (itemId: number, newQuantity: number) => {
     if (newQuantity <= 0) {
-      setOrderItems(orderItems.filter(i => i.id !== itemId))
+      setOrderItems((orderItems || []).filter(i => i.id !== itemId))
     } else {
-      setOrderItems(orderItems.map(i => i.id === itemId ? { ...i, quantity: newQuantity } : i))
+      setOrderItems((orderItems || []).map(i => i.id === itemId ? { ...i, quantity: newQuantity } : i))
     }
   }
 
   const openNoteModal = (item: OrderItem) => {
     setCurrentEditingItem(item)
-    setNoteText(item.note)
+    setNoteText(item.note || '')
     setIsNoteModalOpen(true)
   }
 
   const saveNote = () => {
-    if (!currentEditingItem) return
-    setOrderItems(orderItems.map(i => i.id === currentEditingItem.id ? { ...i, note: noteText } : i))
+    if (currentEditingItem) {
+      setOrderItems((orderItems || []).map(i => i.id === currentEditingItem.id ? { ...i, note: noteText } : i))
+    }
     setIsNoteModalOpen(false)
-    setCurrentEditingItem(null)
-    setNoteText('')
   }
 
-  const calculateTotal = () => orderItems.reduce((total, i) => total + i.price * i.quantity, 0)
+  const calculateTotal = () => (orderItems || []).reduce((total, i) => total + (i.price || 0) * (i.quantity || 0), 0)
 
   const handlePrintBill = () => {
-    if (!printRef.current) return;
-    
-    window.print();
-    
-    // Xóa printedOrder ngay sau khi in
-    setPrintedOrder(null);
-    
-    // Đóng popup sau khi in xong
+    setPrintedOrder({
+      tableName,
+      items: orderItems
+    })
     setTimeout(() => {
-      onClose();
-    }, 300);
+      if (printRef.current) {
+        window.print()
+      }
+    }, 100)
   }
 
   const handleCreateOrder = async () => {
-    if (orderItems.length === 0) {
+    if (!orderItems || orderItems.length === 0) {
       toast.error('Vui lòng chọn ít nhất một món!')
       return
     }
+
     if (!currentShift) {
-      toast.error('Không thể tạo đơn hàng vì không có ca làm việc!')
+      toast.error('Không thể lấy thông tin ca hiện tại!')
       return
     }
+
     try {
-      const orderItemsData = orderItems.map(item => ({
-        menu_item_id: item.menuItemId,
-        quantity: item.quantity,
-        unit_price: item.price,
-        total_price: item.price * item.quantity,
-        note: item.note || ''
-      }))
+      // Tạo order data theo format của backend
       const orderData = {
         table_id: Number(tableId),
         staff_id: currentShift.staff_id,
@@ -255,8 +258,17 @@ export function OrderPopup({ tableId, tableName, onClose, onOrderCreated }: Orde
         payment_status: 'unpaid',
         note: '',
         order_code: `ORD${Date.now()}`,
-        items: orderItemsData
+        items: (orderItems || []).map(item => ({
+          menu_item_id: item.menuItemId,
+          quantity: item.quantity || 0,
+          unit_price: item.price || 0,
+          total_price: (item.price || 0) * (item.quantity || 0),
+          note: item.note || ''
+        }))
       }
+
+      console.log('Sending order data:', orderData)
+
       const response = await fetch('http://192.168.99.166:8000/api/v1/orders/', {
         method: 'POST',
         headers: {
@@ -265,80 +277,88 @@ export function OrderPopup({ tableId, tableName, onClose, onOrderCreated }: Orde
         },
         credentials: 'include',
         mode: 'cors',
-        body: JSON.stringify(orderData)
+        body: JSON.stringify(orderData),
       })
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.detail || 'Có lỗi xảy ra khi tạo đơn hàng')
-      }
-      const data = await response.json()
-      toast.success('Tạo đơn hàng thành công!')
-      
-      // Đóng popup sau khi tạo order thành công
-      setTimeout(() => {
+
+      if (response.ok) {
+        const result = await response.json()
+        toast.success('Tạo order thành công!')
+        
+        // Print bill
+        handlePrintBill()
+        
+        // Close popup and refresh
         onClose()
-      }, 100)
+        if (onOrderCreated) onOrderCreated()
+        
+        // Dispatch event for other components
+        window.dispatchEvent(new CustomEvent('orderUpdate', {
+          detail: { type: 'created', order: result }
+        }))
+      } else {
+        const errorData = await response.json()
+        console.error('Order creation error:', errorData)
+        
+        // Hiển thị chi tiết lỗi
+        let errorMessage = 'Không thể tạo order!'
+        if (errorData.detail) {
+          if (Array.isArray(errorData.detail)) {
+            errorMessage = errorData.detail.map((err: any) => err.msg || err.message || err).join(', ')
+          } else if (typeof errorData.detail === 'string') {
+            errorMessage = errorData.detail
+          }
+        }
+        toast.error(errorMessage)
+      }
     } catch (error) {
       console.error('Error creating order:', error)
-      toast.error(error instanceof Error ? error.message : 'Có lỗi xảy ra khi tạo đơn hàng!')
+      toast.error('Có lỗi xảy ra khi tạo order!')
     }
   }
 
   const handleSplitOrder = () => {
-    if (orderItems.length < 2) {
-      toast.error('Cần ít nhất 2 món để tách order!')
-      return
-    }
     setItemsToSplit([])
     setIsSplitModalOpen(true)
   }
 
   const handleToggleSplitItem = (item: OrderItem) => {
-    setItemsToSplit(prev => {
-      const exists = prev.find(i => i.id === item.id)
-      if (exists) {
-        return prev.filter(i => i.id !== item.id)
-      } else {
-        return [...prev, item]
-      }
-    })
+    setItemsToSplit(prev => 
+      (prev || []).some(i => i.id === item.id) 
+        ? (prev || []).filter(i => i.id !== item.id)
+        : [...(prev || []), item]
+    )
   }
 
   const handleConfirmSplit = async () => {
-    if (itemsToSplit.length === 0) {
+    if (!itemsToSplit || itemsToSplit.length === 0) {
       toast.error('Vui lòng chọn ít nhất một món để tách!')
-      return
-    }
-
-    if (itemsToSplit.length === orderItems.length) {
-      toast.error('Không thể tách toàn bộ món!')
       return
     }
 
     setIsSplitting(true)
     try {
-      // Tạo order mới với các món được chọn
-      const splitOrderItems = itemsToSplit.map(item => ({
-        menu_item_id: item.menuItemId,
-        quantity: item.quantity,
-        unit_price: item.price,
-        total_price: item.price * item.quantity,
-        note: item.note || ''
-      }))
-
+      // Create new order with split items theo format của backend
       const splitOrderData = {
         table_id: Number(tableId),
         staff_id: currentShift?.staff_id,
         shift_id: currentShift?.id,
         status: 'pending',
-        total_amount: itemsToSplit.reduce((total, i) => total + i.price * i.quantity, 0),
+        total_amount: (itemsToSplit || []).reduce((total, i) => total + (i.price || 0) * (i.quantity || 0), 0),
         discount_amount: 0,
-        final_amount: itemsToSplit.reduce((total, i) => total + i.price * i.quantity, 0),
+        final_amount: (itemsToSplit || []).reduce((total, i) => total + (i.price || 0) * (i.quantity || 0), 0),
         payment_status: 'unpaid',
         note: 'Order được tách từ order gốc',
         order_code: `ORD${Date.now()}`,
-        items: splitOrderItems
+        items: (itemsToSplit || []).map(item => ({
+          menu_item_id: item.menuItemId,
+          quantity: item.quantity || 0,
+          unit_price: item.price || 0,
+          total_price: (item.price || 0) * (item.quantity || 0),
+          note: item.note || ''
+        }))
       }
+
+      console.log('Sending split order data:', splitOrderData)
 
       const response = await fetch('http://192.168.99.166:8000/api/v1/orders/', {
         method: 'POST',
@@ -348,51 +368,47 @@ export function OrderPopup({ tableId, tableName, onClose, onOrderCreated }: Orde
         },
         credentials: 'include',
         mode: 'cors',
-        body: JSON.stringify(splitOrderData)
+        body: JSON.stringify(splitOrderData),
       })
 
-      if (!response.ok) {
-        throw new Error('Có lỗi xảy ra khi tách order')
+      if (response.ok) {
+        // Remove split items from current order
+        setOrderItems((orderItems || []).filter(item => !(itemsToSplit || []).some(splitItem => splitItem.id === item.id)))
+        toast.success('Tách order thành công!')
+        setIsSplitModalOpen(false)
+      } else {
+        const errorData = await response.json()
+        console.error('Split order error:', errorData)
+        
+        // Hiển thị chi tiết lỗi
+        let errorMessage = 'Không thể tách order!'
+        if (errorData.detail) {
+          if (Array.isArray(errorData.detail)) {
+            errorMessage = errorData.detail.map((err: any) => err.msg || err.message || err).join(', ')
+          } else if (typeof errorData.detail === 'string') {
+            errorMessage = errorData.detail
+          }
+        }
+        toast.error(errorMessage)
       }
-
-      // Cập nhật order gốc bằng cách loại bỏ các món đã tách
-      setOrderItems(prev => prev.filter(item => !itemsToSplit.find(i => i.id === item.id)))
-      
-      toast.success('Tách order thành công!')
-      setIsSplitModalOpen(false)
-      setItemsToSplit([])
     } catch (error) {
       console.error('Error splitting order:', error)
-      toast.error(error instanceof Error ? error.message : 'Có lỗi xảy ra khi tách order!')
+      toast.error('Có lỗi xảy ra khi tách order!')
     } finally {
       setIsSplitting(false)
     }
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-0">
-      <style>{`
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <style jsx global>{`
         @media print {
-          body * {
-            visibility: hidden !important;
-          }
-          .print-bill, .print-bill * {
-            visibility: visible !important;
-          }
           .print-bill {
-            position: absolute !important;
-            left: 0; top: 0; width: 80mm; background: white;
-            z-index: 9999;
-            font-family: 'Arial', 'Helvetica', 'sans-serif';
-            font-size: 16px;
-            padding: 10px;
-          }
-          .print-bill h3 {
-            font-size: 28px;
-            font-weight: bold;
-            text-align: center;
-            margin-bottom: 16px;
-            letter-spacing: 2px;
+            display: block !important;
+            font-family: monospace;
+            font-size: 14px;
+            line-height: 1.4;
+            padding: 20px;
           }
           .print-bill .item-row {
             display: flex;
@@ -419,11 +435,33 @@ export function OrderPopup({ tableId, tableName, onClose, onOrderCreated }: Orde
           <h2 className="text-xl font-semibold">Order cho {tableName}</h2>
           <button onClick={onClose} className="text-gray-500 hover:text-red-600 text-2xl">×</button>
         </div>
-        <div className="flex-1 overflow-auto p-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Menu */}
-            <div className="md:col-span-2 bg-white rounded-lg">
+        
+        <div className="flex-1 flex overflow-hidden">
+          {/* Menu Section - Scrollable */}
+          <div className="flex-1 overflow-auto p-4">
+            <div className="bg-white rounded-lg">
+              {/* Search Box */}
+              <div className="mb-4">
+                <div className="relative">
+                  <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Tìm kiếm món ăn..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+
+              {/* Category Buttons */}
               <div className="flex flex-wrap gap-2 mb-4">
+                <button
+                  onClick={() => setSelectedGroupId(null)}
+                  className={`px-3 py-1 rounded-full text-sm ${!selectedGroupId ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-800'}`}
+                >
+                  Tất cả
+                </button>
                 {menuGroups && menuGroups.length > 0 ? (
                   menuGroups.map(group => (
                     <button
@@ -438,112 +476,135 @@ export function OrderPopup({ tableId, tableName, onClose, onOrderCreated }: Orde
                   <div className="text-gray-500">Không có nhóm món ăn nào</div>
                 )}
               </div>
+
+              {/* Search Status */}
+              {searchQuery && (
+                <div className="mb-4 p-2 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-800">
+                    🔍 Đang tìm kiếm "{searchQuery}" trên toàn bộ menu...
+                  </p>
+                </div>
+              )}
+
+              {/* Menu Items Grid */}
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                {filteredItems.map(item => (
+                {filteredItems && filteredItems.map(item => (
                   <div
                     key={item.id}
-                    className="bg-gray-50 rounded-lg p-3 cursor-pointer hover:shadow-md"
+                    className="bg-gray-50 rounded-lg p-3 cursor-pointer hover:shadow-md transition-shadow"
                     onClick={() => addToOrder(item)}
                   >
                     <div className="h-32 bg-gray-200 rounded-md mb-3 flex items-center justify-center text-gray-400 overflow-hidden">
                       <MenuItemImage
-                        code={item.code}
-                        alt={item.name}
+                        code={item.code || ''}
+                        alt={item.name || ''}
                         className="h-full w-full object-cover rounded-md"
                       />
                     </div>
-                    <h3 className="font-medium text-sm mb-1 line-clamp-2">{item.name}</h3>
+                    <h3 className="font-medium text-sm mb-1 line-clamp-2">{item.name || 'Không có tên'}</h3>
                     <p className="text-primary-600 text-sm font-semibold">
-                      {item.price.toLocaleString('vi-VN')} ₫
+                      {(item.price || 0).toLocaleString('vi-VN')} ₫
                     </p>
                   </div>
                 ))}
               </div>
-            </div>
-            {/* Order */}
-            <div className="bg-white rounded-lg">
-              <div className="sticky top-0 bg-white p-4 border-b">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-lg font-semibold">Order</h2>
-                  {orderItems.length >= 2 && (
-                    <button
-                      onClick={handleSplitOrder}
-                      className="text-primary-600 hover:text-primary-700 flex items-center gap-1"
-                    >
-                      <FaCut /> Tách order
-                    </button>
-                  )}
+              
+              {(!filteredItems || filteredItems.length === 0) && (
+                <div className="text-center py-8 text-gray-500">
+                  {searchQuery ? `Không tìm thấy món ăn nào phù hợp với "${searchQuery}"` : 'Không có món ăn nào'}
                 </div>
-              </div>
-              <div className="p-4">
-                {orderItems.length === 0 ? (
-                  <p className="text-gray-500 text-center py-8">Chưa có món nào được chọn</p>
-                ) : (
-                  <div className="space-y-3">
-                    {orderItems.map(item => (
-                      <div key={item.id} className="border-b pb-3">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="font-medium text-sm">{item.name}</h3>
-                            <p className="text-primary-600 text-sm">
-                              {item.price.toLocaleString('vi-VN')} ₫
-                            </p>
-                            {item.note && (
-                              <p className="text-xs text-gray-500">Ghi chú: {item.note}</p>
-                            )}
-                          </div>
-                          <div className="flex flex-col items-end">
-                            <div className="flex items-center space-x-2">
-                              <button
-                                onClick={() => updateItemQuantity(item.id, item.quantity - 1)}
-                                className="bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center"
-                              >
-                                <FaMinus className="text-xs" />
-                              </button>
-                              <span className="mx-1 text-sm">{item.quantity}</span>
-                              <button
-                                onClick={() => updateItemQuantity(item.id, item.quantity + 1)}
-                                className="bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center"
-                              >
-                                <FaPlus className="text-xs" />
-                              </button>
-                            </div>
-                            <div className="flex mt-2 space-x-2">
-                              <button
-                                onClick={() => openNoteModal(item)}
-                                className="text-xs text-gray-500 underline"
-                              >
-                                Ghi chú
-                              </button>
-                              <button
-                                onClick={() => updateItemQuantity(item.id, 0)}
-                                className="text-xs text-red-500"
-                              >
-                                <FaTrash />
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                    <div className="sticky bottom-0 bg-white pt-4 border-t">
-                      <div className="flex justify-between font-semibold text-sm mb-4">
-                        <span>Tổng tiền:</span>
-                        <span>{calculateTotal().toLocaleString('vi-VN')} ₫</span>
-                      </div>
-                      <button
-                        onClick={handleCreateOrder}
-                        className="w-full bg-primary-600 text-white py-2 rounded-lg hover:bg-primary-700"
-                      >
-                        Tạo order
-                      </button>
-                    </div>
-                  </div>
+              )}
+            </div>
+          </div>
+
+          {/* Order Section - Fixed */}
+          <div className="w-80 bg-white border-l flex flex-col">
+            <div className="p-4 border-b bg-white">
+              <div className="flex justify-between items-center">
+                <h2 className="text-lg font-semibold">Order</h2>
+                {orderItems && orderItems.length >= 2 && (
+                  <button
+                    onClick={handleSplitOrder}
+                    className="text-primary-600 hover:text-primary-700 flex items-center gap-1"
+                  >
+                    <FaCut /> Tách order
+                  </button>
                 )}
               </div>
             </div>
+            
+            <div className="flex-1 overflow-auto p-4">
+              {(!orderItems || orderItems.length === 0) ? (
+                <p className="text-gray-500 text-center py-8">Chưa có món nào được chọn</p>
+              ) : (
+                <div className="space-y-3">
+                  {orderItems.map(item => (
+                    <div key={item.id} className="border-b pb-3">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-medium text-sm">{item.name || 'Không có tên'}</h3>
+                          <p className="text-primary-600 text-sm">
+                            {(item.price || 0).toLocaleString('vi-VN')} ₫
+                          </p>
+                          {item.note && (
+                            <p className="text-xs text-gray-500">Ghi chú: {item.note}</p>
+                          )}
+                        </div>
+                        <div className="flex flex-col items-end">
+                          <div className="flex items-center space-x-2">
+                            <button
+                              onClick={() => updateItemQuantity(item.id, (item.quantity || 0) - 1)}
+                              className="bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center hover:bg-gray-300"
+                            >
+                              <FaMinus className="text-xs" />
+                            </button>
+                            <span className="mx-1 text-sm">{item.quantity || 0}</span>
+                            <button
+                              onClick={() => updateItemQuantity(item.id, (item.quantity || 0) + 1)}
+                              className="bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center hover:bg-gray-300"
+                            >
+                              <FaPlus className="text-xs" />
+                            </button>
+                          </div>
+                          <div className="flex mt-2 space-x-2">
+                            <button
+                              onClick={() => openNoteModal(item)}
+                              className="text-xs text-gray-500 underline hover:text-gray-700"
+                            >
+                              Ghi chú
+                            </button>
+                            <button
+                              onClick={() => updateItemQuantity(item.id, 0)}
+                              className="text-xs text-red-500 hover:text-red-700"
+                            >
+                              <FaTrash />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            {/* Fixed Bottom Section */}
+            <div className="p-4 border-t bg-white">
+              <div className="flex justify-between font-semibold text-sm mb-4">
+                <span>Tổng tiền:</span>
+                <span>{calculateTotal().toLocaleString('vi-VN')} ₫</span>
+              </div>
+              <button
+                onClick={handleCreateOrder}
+                disabled={!orderItems || orderItems.length === 0}
+                className="w-full bg-primary-600 text-white py-2 rounded-lg hover:bg-primary-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+              >
+                Tạo order
+              </button>
+            </div>
           </div>
         </div>
+
         {/* Bill content for print only */}
         {printedOrder && (
           <div className="print-bill" ref={printRef}>
@@ -559,24 +620,25 @@ export function OrderPopup({ tableId, tableName, onClose, onOrderCreated }: Orde
             ))}
           </div>
         )}
+
         {/* Split Order Modal */}
         {isSplitModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-4 w-full max-w-md">
               <h3 className="text-lg font-semibold mb-4">Chọn món để tách order</h3>
               <div className="space-y-2 mb-4 max-h-96 overflow-y-auto">
-                {orderItems.map(item => (
+                {orderItems && orderItems.map(item => (
                   <label key={item.id} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded">
                     <input
                       type="checkbox"
-                      checked={itemsToSplit.some(i => i.id === item.id)}
+                      checked={itemsToSplit && itemsToSplit.some(i => i.id === item.id)}
                       onChange={() => handleToggleSplitItem(item)}
                       className="rounded"
                     />
                     <div className="flex-1">
-                      <p className="font-medium">{item.name}</p>
+                      <p className="font-medium">{item.name || 'Không có tên'}</p>
                       <p className="text-sm text-gray-500">
-                        {item.quantity} x {item.price.toLocaleString('vi-VN')} ₫
+                        {item.quantity || 0} x {(item.price || 0).toLocaleString('vi-VN')} ₫
                       </p>
                       {item.note && (
                         <p className="text-xs text-gray-500">Ghi chú: {item.note}</p>
@@ -587,10 +649,10 @@ export function OrderPopup({ tableId, tableName, onClose, onOrderCreated }: Orde
               </div>
               <div className="flex justify-between items-center mb-4">
                 <span className="text-sm text-gray-600">
-                  Đã chọn {itemsToSplit.length} món
+                  Đã chọn {itemsToSplit ? itemsToSplit.length : 0} món
                 </span>
                 <span className="font-medium">
-                  Tổng: {itemsToSplit.reduce((total, i) => total + i.price * i.quantity, 0).toLocaleString('vi-VN')} ₫
+                  Tổng: {(itemsToSplit || []).reduce((total, i) => total + (i.price || 0) * (i.quantity || 0), 0).toLocaleString('vi-VN')} ₫
                 </span>
               </div>
               <div className="flex justify-end space-x-2">
@@ -612,11 +674,12 @@ export function OrderPopup({ tableId, tableName, onClose, onOrderCreated }: Orde
             </div>
           </div>
         )}
+
         {/* Note Modal */}
         {isNoteModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-4 w-full max-w-md">
-              <h3 className="text-base font-semibold mb-2">Ghi chú cho {currentEditingItem?.name}</h3>
+              <h3 className="text-base font-semibold mb-2">Ghi chú cho {currentEditingItem?.name || 'món này'}</h3>
               <textarea
                 value={noteText}
                 onChange={e => setNoteText(e.target.value)}

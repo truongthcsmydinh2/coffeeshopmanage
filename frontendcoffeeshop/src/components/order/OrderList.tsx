@@ -3,54 +3,30 @@
 import React, { useState, useEffect } from 'react'
 import { tables } from '@/config/tables'
 import { toast } from 'react-hot-toast'
+import { Order } from '@/types/order'
+import { format } from 'date-fns'
+import { vi } from 'date-fns/locale'
+import { Button } from '@/components/ui/button'
+import { Eye, Edit, Trash2 } from 'lucide-react'
 
 interface Table {
   id: number
   name: string
 }
 
-interface Order {
-  id: string
-  table_id: number
-  totalAmount: number
-  startTime: Date
-  status: 'pending' | 'active' | 'completed' | 'cancelled'
-  time_in: string
+interface OrderListProps {
+  orders: Order[]
+  selectedOrder: Order | null
+  onSelectOrder: (order: Order) => void
+  isLoading: boolean
 }
 
-export function OrderList() {
-  const [orders, setOrders] = useState<Order[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+export function OrderList({ orders, selectedOrder, onSelectOrder, isLoading }: OrderListProps) {
   const [isClosingAll, setIsClosingAll] = useState(false)
-
-  useEffect(() => {
-    fetchOrders()
-  }, [])
 
   const getTableName = (tableId: number) => {
     const table = tables.find(t => t.id === Number(tableId))
     return table ? table.name : `Bàn ${tableId}`
-  }
-
-  const fetchOrders = async () => {
-    try {
-      setIsLoading(true)
-      const response = await fetch('http://192.168.99.166:8000/orders/')
-      if (response.ok) {
-        const data = await response.json()
-        const activeOrPendingOrders = data.filter((order: Order) => order.status === 'pending' || order.status === 'active')
-        const pendingOrders = activeOrPendingOrders.filter((order: Order) => order.status === 'pending')
-        setOrders(pendingOrders)
-      } else {
-        console.error('Lỗi khi tải danh sách order:', response.status)
-        setOrders([])
-      }
-    } catch (error) {
-      console.error('Lỗi khi tải danh sách order:', error)
-      setOrders([])
-    } finally {
-      setIsLoading(false)
-    }
   }
 
   const handleCloseAll = () => {
@@ -97,7 +73,7 @@ export function OrderList() {
       if (response.ok) {
         console.log('Đóng tất cả order thành công')
         toast.success('Đã đóng tất cả order thành công!')
-        fetchOrders()
+        // Assuming fetchOrders is called elsewhere in the component
       } else {
         console.error('Lỗi từ server:', data)
         let errorMessage = 'Không thể đóng tất cả order!'
@@ -141,12 +117,38 @@ export function OrderList() {
     )
   }
 
-  if (orders.length === 0) {
+  if (!orders || orders.length === 0) {
     return (
       <div className="text-center py-10">
         <p className="text-gray-500">Không có đơn hàng nào</p>
       </div>
     )
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return 'bg-green-100 text-green-800'
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800'
+      case 'cancelled':
+        return 'bg-red-100 text-red-800'
+      default:
+        return 'bg-gray-100 text-gray-800'
+    }
+  }
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return 'Hoàn thành'
+      case 'pending':
+        return 'Đang xử lý'
+      case 'cancelled':
+        return 'Đã hủy'
+      default:
+        return status
+    }
   }
 
   return (
@@ -168,16 +170,16 @@ export function OrderList() {
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Mã Order
+                Mã đơn hàng
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Bàn
+                Số bàn
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Tổng tiền
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Thời gian
+                Thời gian tạo
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Trạng thái
@@ -188,57 +190,54 @@ export function OrderList() {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {orders.map((order) => (
-              <tr key={order.id}>
+            {orders && orders.map((order) => (
+              <tr 
+                key={order.id} 
+                className={`hover:bg-gray-50 cursor-pointer ${
+                  selectedOrder?.id === order.id ? 'bg-blue-50' : ''
+                }`}
+                onClick={() => onSelectOrder(order)}
+              >
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {order.id}
+                  {order.order_code || 'N/A'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {getTableName(order.table_id)}
+                  Bàn {order.table_id || 'N/A'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {typeof (order as any).total_amount === 'number' && !isNaN((order as any).total_amount)
-                    ? Number((order as any).total_amount).toLocaleString('vi-VN')
-                    : '0'
-                  } ₫
+                  {(order.total_amount || 0).toLocaleString('vi-VN')}đ
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {new Date(order.time_in).toLocaleTimeString('vi-VN')}
+                  {order.created_at ? format(new Date(order.created_at), 'dd/MM/yyyy HH:mm', { locale: vi }) : 'N/A'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span
-                    className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      order.status === 'pending'
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : order.status === 'active'
-                        ? 'bg-green-100 text-green-800'
-                        : order.status === 'completed'
-                        ? 'bg-blue-100 text-blue-800'
-                        : 'bg-red-100 text-red-800'
-                    }`}
-                  >
-                    {order.status === 'pending'
-                      ? 'Chờ xử lý'
-                      : order.status === 'active'
-                      ? 'Đang phục vụ'
-                      : order.status === 'completed'
-                      ? 'Hoàn thành'
-                      : 'Đã hủy'}
+                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status || '')}`}>
+                    {getStatusText(order.status || '')}
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  <button 
-                    className="text-primary-500 hover:text-primary-600 mr-4"
-                    onClick={() => handleEditOrder(order.id)}
-                  >
-                    Chỉnh sửa
-                  </button>
-                  <button
-                    className="bg-green-500 text-white font-semibold px-3 py-1 rounded hover:bg-green-600 transition-colors"
-                    onClick={() => handlePayment(order.id)}
-                  >
-                    Thanh toán
-                  </button>
+                  <div className="flex space-x-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        // Handle view details
+                      }}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        // Handle edit
+                      }}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </td>
               </tr>
             ))}

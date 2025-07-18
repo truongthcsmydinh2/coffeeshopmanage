@@ -48,6 +48,12 @@ def ensure_timezone(dt: datetime) -> datetime:
         return dt.replace(tzinfo=VIETNAM_TIMEZONE)
     return dt
 
+# Constants for bill formatting
+TOTAL_BILL_WIDTH = 33
+QTY_COL_WIDTH = 4 # e.g., " x3 "
+PRICE_COL_WIDTH = 9 # e.g., "120.000" (max 7 digits + 2 for thousands separator/padding)
+NAME_COL_WIDTH = TOTAL_BILL_WIDTH - QTY_COL_WIDTH - PRICE_COL_WIDTH # This will be 20
+
 router = APIRouter()
 
 class ConnectionManager:
@@ -366,12 +372,13 @@ async def create_order(order: OrderCreate, db: Session = Depends(get_db)):
             table_id=order.table_id,
             staff_id=order.staff_id,
             shift_id=order.shift_id,
-            status=order.status,
+            status="completed",
             total_amount=order.total_amount,
             note=order.note,
-            payment_status=order.payment_status,
+            payment_status="paid",
             order_code=str(uuid.uuid4())[:8].upper(),
-            time_in=get_vietnam_time()
+            time_in=get_vietnam_time(),
+            time_out=get_vietnam_time()
         )
         db.add(new_order)
         db.flush()
@@ -388,6 +395,15 @@ async def create_order(order: OrderCreate, db: Session = Depends(get_db)):
                 note=item.note
             )
             db.add(new_item)
+
+        # Cập nhật trạng thái bàn thành available
+        table = db.query(Table).filter(Table.id == new_order.table_id).first()
+        if table:
+            table.status = "available"
+            db.add(table) # Mark as dirty to ensure update
+            logger.info(f"Đã cập nhật trạng thái bàn {table.id} thành available")
+        else:
+            logger.warning(f"Không tìm thấy bàn với ID {new_order.table_id} để cập nhật trạng thái.")
 
         db.commit()
         db.refresh(new_order)
@@ -435,27 +451,20 @@ async def create_order(order: OrderCreate, db: Session = Depends(get_db)):
             "items": order_items
         }
 
-        # Gửi thông báo ngay lập tức với đầy đủ thông tin order mới
-        logger.info("Broadcasting order update")
-        success = False
-        for printer_id in printer_manager.active_printers.keys():
-            try:
-                result = await printer_manager.send_to_printer(printer_id, {
-                    "type": "order_update",
-                    "data": {
-                        "type": "created",
-                        "order": response
-                    }
-                })
-                if result:
-                    success = True
-                    logger.info(f"Đã gửi thông báo cập nhật tới printer {printer_id}")
-            except Exception as e:
-                logger.error(f"Lỗi khi gửi thông báo cập nhật tới printer {printer_id}: {str(e)}")
+        # Gửi thông báo cập nhật order chung (không phải lệnh in tới máy in vật lý)
+        logger.info("Broadcasting order update to general connections")
+        await manager.broadcast({
+            "type": "order_update",
+            "data": {
+                "type": "created",
+                "order": {
+                    **response,
+                    "time_in": response["time_in"].isoformat() if response["time_in"] else None,
+                    "time_out": response["time_out"].isoformat() if response["time_out"] else None
+                }
+            }
+        })
         
-        if not success:
-            logger.error("Không thể gửi thông báo cập nhật tới bất kỳ máy in nào")
-
         # Lấy thông tin bàn
         table = db.query(Table).filter(Table.id == response['table_id']).first()
 
@@ -464,14 +473,73 @@ async def create_order(order: OrderCreate, db: Session = Depends(get_db)):
             {"text": "PHIẾU LÀM ĐỒ", "fontSize": 14, "fontName": "Arial Black", "bold": True, "align": "center"},
             {"text": f"Bàn: {table.name if table else f'Bàn {response['table_id']}'}", "fontSize": 10, "bold": False, "align": "left"},
             {"text": f"Thời gian: {response['time_in'].strftime('%H:%M')}", "fontSize": 10, "bold": False, "align": "left"},
-            {"text": "--------------------------------", "fontSize": 16, "bold": False, "align": "left"},
+            {"text": "---------------------------------", "fontSize": 16, "bold": False, "align": "left"},
         ]
+
+        # Header của bảng (33 ký tự tổng cộng)
+        # Tên hàng (20) | SL (4) | TIỀN (9) = 33
+        header_name_part = "TÊN HÀNG".ljust(NAME_COL_WIDTH)
+        header_qty_part = "SL".center(QTY_COL_WIDTH)
+        header_total_price_part = "TIỀN".rjust(PRICE_COL_WIDTH)
+        bill_lines.append({"text": f"{header_name_part}{header_qty_part}{header_total_price_part}", "fontSize": 12, "bold": True, "align": "left"})
+        bill_lines.append({"text": "---------------------------------", "fontSize": 16, "bold": False, "align": "left"})
+
+        total_amount = 0
         for item in response["items"]:
-            line = {"text": f"{item['name']} x{item['quantity']}", "fontSize": 14, "bold": True, "align": "left"}
-            bill_lines.append(line)
+            item_total = item['total_price']
+            total_amount += item_total
+            
+            # Format quantity and total price
+            qty_str = f"x{item['quantity']}" # "x3"
+            total_price_str = f"{int(item_total):,}" # e.g., "120,000"
+
+            # Pad quantity and total price to fixed widths
+            item_qty_part = qty_str.center(QTY_COL_WIDTH)
+            item_total_price_part = total_price_str.rjust(PRICE_COL_WIDTH)
+
+            # Wrap the item name, first line will take full width
+            wrapped_name_lines = textwrap.wrap(item['name'], width=NAME_COL_WIDTH)
+
+            # Add the first line with name, quantity, total price
+            if wrapped_name_lines:
+                first_name_part = wrapped_name_lines[0].ljust(NAME_COL_WIDTH)
+                item_line_text = f"{first_name_part}{item_qty_part}{item_total_price_part}"
+                bill_lines.append({
+                    "text": item_line_text,
+                    "fontSize": 12, "bold": False, "align": "left"
+                })
+
+                # Add subsequent lines for wrapped name parts (indented)
+                for i in range(1, len(wrapped_name_lines)):
+                    bill_lines.append({
+                        "text": "  " + wrapped_name_lines[i].ljust(NAME_COL_WIDTH - 2), # Indent wrapped lines by 2 spaces
+                        "fontSize": 12, "bold": False, "align": "left"
+                    })
+            else:
+                # Handle empty name (should not happen with menu items)
+                item_line_text = f"{''.ljust(NAME_COL_WIDTH)}{item_qty_part}{item_total_price_part}"
+                bill_lines.append({
+                    "text": item_line_text,
+                    "fontSize": 12, "bold": False, "align": "left"
+                })
+            
             if item.get("note"):
-                bill_lines.append({"text": f"Ghi chú: {item['note']}", "fontSize": 14, "bold": False, "align": "left"})
-        bill_lines.append({"text": "--------------------------------", "fontSize": 16, "bold": False, "align": "left"})
+                # Ghi chú thụt lề
+                bill_lines.append({"text": f"  Ghi chú: {item['note']}", "fontSize": 12, "bold": False, "align": "left"})
+
+        # Thêm tổng tiền (33 ký tự tổng cộng)
+        total_amount_str = f"{int(total_amount):,}" # e.g., "120,000"
+        
+        # Định dạng dòng tổng tiền
+        total_label_width = NAME_COL_WIDTH + QTY_COL_WIDTH
+        total_label_part = "TỔNG TIỀN:".ljust(total_label_width)
+        total_amount_part = total_amount_str.rjust(PRICE_COL_WIDTH)
+        
+        bill_lines.extend([
+            {"text": "---------------------------------", "fontSize": 16, "bold": False, "align": "left"},
+            {"text": f"{total_label_part}{total_amount_part}", "fontSize": 14, "bold": True, "align": "left"},
+            {"text": "---------------------------------", "fontSize": 16, "bold": False, "align": "left"},
+        ])
 
         # Gửi tới tất cả các máy in đang kết nối qua WebSocket
         logger.info("Gửi dữ liệu in qua WebSocket")
@@ -484,7 +552,7 @@ async def create_order(order: OrderCreate, db: Session = Depends(get_db)):
                 result = await printer_manager.send_to_printer(printer_id, {
                     "type": "print",
                     "data": bill_lines,
-                    "timestamp": datetime.now().isoformat()
+                    "timestamp": datetime.now().isoformat()  # Chuyển datetime thành string
                 })
                 if result:
                     success = True
@@ -696,27 +764,16 @@ async def update_order(order_id: int, order: OrderUpdate, db: Session = Depends(
             "items": order_items
         }
 
-        # Gửi thông báo cập nhật
-        logger.info("Broadcasting order update")
-        success = False
-        for printer_id in printer_manager.active_printers.keys():
-            try:
-                result = await printer_manager.send_to_printer(printer_id, {
-                    "type": "order_update",
-                    "data": {
-                        "type": "updated",
-                        "order": response_dict
-                    }
-                })
-                if result:
-                    success = True
-                    logger.info(f"Đã gửi thông báo cập nhật tới printer {printer_id}")
-            except Exception as e:
-                logger.error(f"Lỗi khi gửi thông báo cập nhật tới printer {printer_id}: {str(e)}")
+        # Gửi thông báo cập nhật order chung (không phải lệnh in tới máy in vật lý)
+        logger.info("Broadcasting order update to general connections")
+        await manager.broadcast({
+            "type": "order_update",
+            "data": {
+                "type": "updated",
+                "order": response_dict
+            }
+        })
         
-        if not success:
-            logger.error("Không thể gửi thông báo cập nhật tới bất kỳ máy in nào")
-
         # Lấy thông tin bàn
         table = db.query(Table).filter(Table.id == response_dict['table_id']).first()
 
@@ -725,27 +782,73 @@ async def update_order(order_id: int, order: OrderUpdate, db: Session = Depends(
             {"text": "PHIẾU LÀM ĐỒ", "fontSize": 14, "fontName": "Arial Black", "bold": True, "align": "center"},
             {"text": f"Bàn: {table.name if table else f'Bàn {response_dict['table_id']}'}", "fontSize": 10, "bold": False, "align": "left"},
             {"text": f"Thời gian: {response_dict['time_in'].strftime('%H:%M')}", "fontSize": 10, "bold": False, "align": "left"},
-            {"text": "--------------------------------", "fontSize": 16, "bold": False, "align": "left"},
+            {"text": "---------------------------------", "fontSize": 16, "bold": False, "align": "left"},
         ]
-        # So sánh món mới với món cũ, chỉ in phần tăng thêm
-        for key, new_qty in new_items_map.items():
-            old_qty = old_items_map.get(key, 0)
-            if new_qty > old_qty:
-                name = name_map[key]
-                note = key[1]
-                qty_text = f"x{new_qty - old_qty}"
-                # Cắt tên món theo từ, không cắt giữa các từ
-                max_len = 28
-                name_lines = textwrap.wrap(name, width=max_len)
-                if name_lines:
-                    bill_lines.append({"text": f"{name_lines[0]} {qty_text}", "fontSize": 14, "bold": True, "align": "left"})
-                    for subline in name_lines[1:]:
-                        bill_lines.append({"text": subline, "fontSize": 14, "bold": True, "align": "left"})
-                else:
-                    bill_lines.append({"text": f"{name} {qty_text}", "fontSize": 14, "bold": True, "align": "left"})
-                if note:
-                    bill_lines.append({"text": f"Ghi chú: {note}", "fontSize": 14, "bold": False, "align": "left"})
-        bill_lines.append({"text": "--------------------------------", "fontSize": 16, "bold": False, "align": "left"})
+
+        # Header của bảng (33 ký tự tổng cộng)
+        # Tên hàng (20) | SL (4) | TIỀN (9) = 33
+        header_name_part = "TÊN HÀNG".ljust(NAME_COL_WIDTH)
+        header_qty_part = "SL".center(QTY_COL_WIDTH)
+        header_total_price_part = "TIỀN".rjust(PRICE_COL_WIDTH)
+        bill_lines.append({"text": f"{header_name_part}{header_qty_part}{header_total_price_part}", "fontSize": 12, "bold": True, "align": "left"})
+        bill_lines.append({"text": "---------------------------------", "fontSize": 16, "bold": False, "align": "left"})
+
+        total_amount = 0
+        for item in response_dict["items"]:
+            item_total = item['total_price']
+            total_amount += item_total
+            
+            # Format quantity and total price
+            qty_str = f"x{item['quantity']}" # "x3"
+            total_price_str = f"{int(item_total):,}" # e.g., "120,000"
+
+            # Pad quantity and total price to fixed widths
+            item_qty_part = qty_str.center(QTY_COL_WIDTH)
+            item_total_price_part = total_price_str.rjust(PRICE_COL_WIDTH)
+
+            # Wrap the item name, first line will take full width
+            wrapped_name_lines = textwrap.wrap(item['name'], width=NAME_COL_WIDTH)
+
+            # Add the first line with name, quantity, total price
+            if wrapped_name_lines:
+                first_name_part = wrapped_name_lines[0].ljust(NAME_COL_WIDTH)
+                item_line_text = f"{first_name_part}{item_qty_part}{item_total_price_part}"
+                bill_lines.append({
+                    "text": item_line_text,
+                    "fontSize": 12, "bold": False, "align": "left"
+                })
+
+                # Add subsequent lines for wrapped name parts (indented)
+                for i in range(1, len(wrapped_name_lines)):
+                    bill_lines.append({
+                        "text": "  " + wrapped_name_lines[i].ljust(NAME_COL_WIDTH - 2), # Indent wrapped lines by 2 spaces
+                        "fontSize": 12, "bold": False, "align": "left"
+                    })
+            else:
+                # Handle empty name (should not happen with menu items)
+                item_line_text = f"{''.ljust(NAME_COL_WIDTH)}{item_qty_part}{item_total_price_part}"
+                bill_lines.append({
+                    "text": item_line_text,
+                    "fontSize": 12, "bold": False, "align": "left"
+                })
+            
+            if item.get("note"):
+                # Ghi chú thụt lề
+                bill_lines.append({"text": f"  Ghi chú: {item['note']}", "fontSize": 12, "bold": False, "align": "left"})
+
+        # Thêm tổng tiền (33 ký tự tổng cộng)
+        total_amount_str = f"{int(total_amount):,}" # e.g., "120,000"
+        
+        # Định dạng dòng tổng tiền
+        total_label_width = NAME_COL_WIDTH + QTY_COL_WIDTH
+        total_label_part = "TỔNG TIỀN:".ljust(total_label_width)
+        total_amount_part = total_amount_str.rjust(PRICE_COL_WIDTH)
+        
+        bill_lines.extend([
+            {"text": "---------------------------------", "fontSize": 16, "bold": False, "align": "left"},
+            {"text": f"{total_label_part}{total_amount_part}", "fontSize": 14, "bold": True, "align": "left"},
+            {"text": "---------------------------------", "fontSize": 16, "bold": False, "align": "left"},
+        ])
 
         # Gửi tới tất cả các máy in đang kết nối qua WebSocket
         logger.info("Gửi dữ liệu in qua WebSocket")
@@ -758,7 +861,7 @@ async def update_order(order_id: int, order: OrderUpdate, db: Session = Depends(
                 result = await printer_manager.send_to_printer(printer_id, {
                     "type": "print",
                     "data": bill_lines,
-                    "timestamp": datetime.now().isoformat()
+                    "timestamp": datetime.now().isoformat()  # Chuyển datetime thành string
                 })
                 if result:
                     success = True
@@ -769,19 +872,14 @@ async def update_order(order_id: int, order: OrderUpdate, db: Session = Depends(
         if not success:
             logger.error("Không thể gửi dữ liệu tới bất kỳ máy in nào")
 
-        logger.info(f"{'='*50}")
-        logger.info("KẾT THÚC CẬP NHẬT ORDER")
-        logger.info(f"{'='*50}\n")
-        
-        return OrderResponse(**response_dict)
+        return response_dict
 
     except Exception as e:
         db.rollback()
-        logger.error(f"\nLỗi cập nhật order: {str(e)}")
-        logger.info(f"{'='*50}")
-        logger.info("KẾT THÚC CẬP NHẬT ORDER VỚI LỖI")
-        logger.info(f"{'='*50}\n")
+        logger.error(f"Lỗi khi cập nhật order {order_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        logger.info(f"=== KẾT THÚC CẬP NHẬT ORDER {order_id} ===")
 
 class TableTransferRequest(BaseModel):
     new_table_id: int
@@ -880,27 +978,16 @@ async def transfer_table(
             "items": order_items
         }
 
-        # Gửi thông báo cập nhật
-        logger.info("Broadcasting order update")
-        success = False
-        for printer_id in printer_manager.active_printers.keys():
-            try:
-                result = await printer_manager.send_to_printer(printer_id, {
-                    "type": "order_update",
-                    "data": {
-                        "type": "transferred",
-                        "order": response_dict
-                    }
-                })
-                if result:
-                    success = True
-                    logger.info(f"Đã gửi thông báo cập nhật tới printer {printer_id}")
-            except Exception as e:
-                logger.error(f"Lỗi khi gửi thông báo cập nhật tới printer {printer_id}: {str(e)}")
+        # Gửi thông báo cập nhật order chung (không phải lệnh in tới máy in vật lý)
+        logger.info("Broadcasting order update to general connections")
+        await manager.broadcast({
+            "type": "order_update",
+            "data": {
+                "type": "transferred",
+                "order": response_dict
+            }
+        })
         
-        if not success:
-            logger.error("Không thể gửi thông báo cập nhật tới bất kỳ máy in nào")
-
         # Lấy thông tin bàn
         table = db.query(Table).filter(Table.id == response_dict['table_id']).first()
 
@@ -909,14 +996,73 @@ async def transfer_table(
             {"text": "PHIẾU LÀM ĐỒ", "fontSize": 14, "fontName": "Arial Black", "bold": True, "align": "center"},
             {"text": f"Bàn: {table.name if table else f'Bàn {response_dict['table_id']}'}", "fontSize": 10, "bold": False, "align": "left"},
             {"text": f"Thời gian: {response_dict['time_in'].strftime('%H:%M')}", "fontSize": 10, "bold": False, "align": "left"},
-            {"text": "--------------------------------", "fontSize": 16, "bold": False, "align": "left"},
+            {"text": "---------------------------------", "fontSize": 16, "bold": False, "align": "left"},
         ]
-        for item in order_items:
-            line = {"text": f"{item['name']} x{item['quantity']}", "fontSize": 14, "bold": True, "align": "left"}
-            bill_lines.append(line)
+
+        # Header của bảng (33 ký tự tổng cộng)
+        # Tên hàng (20) | SL (4) | TIỀN (9) = 33
+        header_name_part = "TÊN HÀNG".ljust(NAME_COL_WIDTH)
+        header_qty_part = "SL".center(QTY_COL_WIDTH)
+        header_total_price_part = "TIỀN".rjust(PRICE_COL_WIDTH)
+        bill_lines.append({"text": f"{header_name_part}{header_qty_part}{header_total_price_part}", "fontSize": 12, "bold": True, "align": "left"})
+        bill_lines.append({"text": "---------------------------------", "fontSize": 16, "bold": False, "align": "left"})
+
+        total_amount = 0
+        for item in response_dict["items"]:
+            item_total = item['total_price']
+            total_amount += item_total
+            
+            # Format quantity and total price
+            qty_str = f"x{item['quantity']}" # "x3"
+            total_price_str = f"{int(item_total):,}" # e.g., "120,000"
+
+            # Pad quantity and total price to fixed widths
+            item_qty_part = qty_str.center(QTY_COL_WIDTH)
+            item_total_price_part = total_price_str.rjust(PRICE_COL_WIDTH)
+
+            # Wrap the item name, first line will take full width
+            wrapped_name_lines = textwrap.wrap(item['name'], width=NAME_COL_WIDTH)
+
+            # Add the first line with name, quantity, total price
+            if wrapped_name_lines:
+                first_name_part = wrapped_name_lines[0].ljust(NAME_COL_WIDTH)
+                item_line_text = f"{first_name_part}{item_qty_part}{item_total_price_part}"
+                bill_lines.append({
+                    "text": item_line_text,
+                    "fontSize": 12, "bold": False, "align": "left"
+                })
+
+                # Add subsequent lines for wrapped name parts (indented)
+                for i in range(1, len(wrapped_name_lines)):
+                    bill_lines.append({
+                        "text": "  " + wrapped_name_lines[i].ljust(NAME_COL_WIDTH - 2), # Indent wrapped lines by 2 spaces
+                        "fontSize": 12, "bold": False, "align": "left"
+                    })
+            else:
+                # Handle empty name (should not happen with menu items)
+                item_line_text = f"{''.ljust(NAME_COL_WIDTH)}{item_qty_part}{item_total_price_part}"
+                bill_lines.append({
+                    "text": item_line_text,
+                    "fontSize": 12, "bold": False, "align": "left"
+                })
+            
             if item.get("note"):
-                bill_lines.append({"text": f"Ghi chú: {item['note']}", "fontSize": 14, "bold": False, "align": "left"})
-        bill_lines.append({"text": "--------------------------------", "fontSize": 16, "bold": False, "align": "left"})
+                # Ghi chú thụt lề
+                bill_lines.append({"text": f"  Ghi chú: {item['note']}", "fontSize": 12, "bold": False, "align": "left"})
+
+        # Thêm tổng tiền (33 ký tự tổng cộng)
+        total_amount_str = f"{int(total_amount):,}" # e.g., "120,000"
+        
+        # Định dạng dòng tổng tiền
+        total_label_width = NAME_COL_WIDTH + QTY_COL_WIDTH
+        total_label_part = "TỔNG TIỀN:".ljust(total_label_width)
+        total_amount_part = total_amount_str.rjust(PRICE_COL_WIDTH)
+        
+        bill_lines.extend([
+            {"text": "---------------------------------", "fontSize": 16, "bold": False, "align": "left"},
+            {"text": f"{total_label_part}{total_amount_part}", "fontSize": 14, "bold": True, "align": "left"},
+            {"text": "---------------------------------", "fontSize": 16, "bold": False, "align": "left"},
+        ])
 
         # Gửi tới tất cả các máy in đang kết nối qua WebSocket
         logger.info("Gửi dữ liệu in qua WebSocket")
@@ -929,7 +1075,7 @@ async def transfer_table(
                 result = await printer_manager.send_to_printer(printer_id, {
                     "type": "print",
                     "data": bill_lines,
-                    "timestamp": datetime.now().isoformat()
+                    "timestamp": datetime.now().isoformat()  # Chuyển datetime thành string
                 })
                 if result:
                     success = True
@@ -987,12 +1133,13 @@ async def merge_orders(request: MergeOrdersRequest, db: Session = Depends(get_db
         table_id=table_id,
         staff_id=orders[0].staff_id,
         shift_id=orders[0].shift_id,
-        status=orders[0].status,
+        status="completed",
         total_amount=sum(i["total_price"] for i in merged_items.values()),
         note="Gộp từ các order: " + ", ".join(str(o.id) for o in orders),
-        payment_status=orders[0].payment_status,
+        payment_status="paid",
         order_code=str(uuid.uuid4())[:8].upper(),
-        time_in=get_vietnam_time()
+        time_in=get_vietnam_time(),
+        time_out=get_vietnam_time()
     )
     db.add(new_order)
     db.flush()
@@ -1010,6 +1157,16 @@ async def merge_orders(request: MergeOrdersRequest, db: Session = Depends(get_db
     for order in orders:
         db.query(OrderItem).filter(OrderItem.order_id == order.id).delete()
         db.delete(order)
+
+    # Cập nhật trạng thái của bàn liên quan đến order mới thành 'available'
+    table = db.query(Table).filter(Table.id == new_order.table_id).first()
+    if table:
+        table.status = "available"
+        db.add(table) # Mark as dirty to ensure update
+        logger.info(f"Đã cập nhật trạng thái bàn {table.id} thành available sau khi gộp order.")
+    else:
+        logger.warning(f"Không tìm thấy bàn với ID {new_order.table_id} để cập nhật trạng thái sau khi gộp order.")
+
     db.commit()
     return {"success": True, "order_id": new_order.id}
 
@@ -1066,23 +1223,70 @@ async def print_order(order_id: int, db: Session = Depends(get_db)):
             {"text": f"Bàn: {table.name}", "fontSize": 10, "bold": False, "align": "left"},
             {"text": f"Ca: {shift.shift_type}", "fontSize": 10, "bold": False, "align": "left"},
             {"text": f"Thời gian: {order.time_in.strftime('%d/%m/%Y %H:%M')}", "fontSize": 10, "bold": False, "align": "left"},
-            {"text": "--------------------------------", "fontSize": 12, "bold": False, "align": "left"},
+            {"text": "---------------------------------", "fontSize": 12, "bold": False, "align": "left"},
         ]
 
-        # Thêm items
-        for item, menu_item in items:
-            bill_lines.append({
-                "text": f"{menu_item.name} x{item.quantity} = {item.total_price:,.0f} ₫",
-                "fontSize": 12,
-                "bold": False,
-                "align": "left"
-            })
+        # Header của bảng (33 ký tự tổng cộng)
+        # Tên món (20) | SL (4) | TIỀN (9) = 33
+        header_name_part = "TÊN MÓN".ljust(NAME_COL_WIDTH)
+        header_qty_part = "SL".center(QTY_COL_WIDTH)
+        header_total_price_part = "TIỀN".rjust(PRICE_COL_WIDTH)
+        bill_lines.append({"text": f"{header_name_part}{header_qty_part}{header_total_price_part}", "fontSize": 12, "bold": True, "align": "left"})
+        bill_lines.append({"text": "---------------------------------", "fontSize": 16, "bold": False, "align": "left"})
 
-        # Thêm tổng tiền
+        for item, menu_item in items:
+            item_total = item.total_price
+            
+            # Format quantity and total price
+            qty_str = f"x{item.quantity}" # "x3"
+            total_price_str = f"{int(item_total):,}" # e.g., "120,000"
+
+            # Pad quantity and total price to fixed widths
+            item_qty_part = qty_str.center(QTY_COL_WIDTH)
+            item_total_price_part = total_price_str.rjust(PRICE_COL_WIDTH)
+
+            # Wrap the item name, first line will take full width
+            wrapped_name_lines = textwrap.wrap(menu_item.name, width=NAME_COL_WIDTH)
+
+            # Add the first line with name, quantity, total price
+            if wrapped_name_lines:
+                first_name_part = wrapped_name_lines[0].ljust(NAME_COL_WIDTH)
+                item_line_text = f"{first_name_part}{item_qty_part}{item_total_price_part}"
+                bill_lines.append({
+                    "text": item_line_text,
+                    "fontSize": 12, "bold": False, "align": "left"
+                })
+
+                # Add subsequent lines for wrapped name parts (indented)
+                for i in range(1, len(wrapped_name_lines)):
+                    bill_lines.append({
+                        "text": "  " + wrapped_name_lines[i].ljust(NAME_COL_WIDTH - 2), # Indent wrapped lines by 2 spaces
+                        "fontSize": 12, "bold": False, "align": "left"
+                    })
+            else:
+                # Handle empty name (should not happen with menu items)
+                item_line_text = f"{''.ljust(NAME_COL_WIDTH)}{item_qty_part}{item_total_price_part}"
+                bill_lines.append({
+                    "text": item_line_text,
+                    "fontSize": 12, "bold": False, "align": "left"
+                })
+            
+            if item.note:
+                # Ghi chú thụt lề
+                bill_lines.append({"text": f"  Ghi chú: {item.note}", "fontSize": 12, "bold": False, "align": "left"})
+        
+        # Thêm tổng tiền (33 ký tự tổng cộng)
+        total_amount_str = f"{int(order.total_amount):,}" # e.g., "120,000"
+        
+        # Định dạng dòng tổng tiền
+        total_label_width = NAME_COL_WIDTH + QTY_COL_WIDTH
+        total_label_part = "Tổng tiền:".ljust(total_label_width)
+        total_amount_part = total_amount_str.rjust(PRICE_COL_WIDTH)
+        
         bill_lines.extend([
-            {"text": "--------------------------------", "fontSize": 12, "bold": False, "align": "left"},
-            {"text": f"Tổng tiền: {order.total_amount:,.0f} ₫", "fontSize": 12, "bold": True, "align": "left"},
-            {"text": "--------------------------------", "fontSize": 12, "bold": False, "align": "left"},
+            {"text": "---------------------------------", "fontSize": 16, "bold": False, "align": "left"},
+            {"text": f"{total_label_part}{total_amount_part}", "fontSize": 14, "bold": True, "align": "left"},
+            {"text": "---------------------------------", "fontSize": 16, "bold": False, "align": "left"},
             {"text": "Cảm ơn quý khách!", "fontSize": 12, "bold": False, "align": "center"},
         ])
 
