@@ -28,7 +28,7 @@ const nextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: 'http://192.168.99.166:8000/api/:path*',
+        destination: `${process.env.API_URL || 'http://192.168.99.166:8000'}/api/:path*`,
       },
     ]
   },

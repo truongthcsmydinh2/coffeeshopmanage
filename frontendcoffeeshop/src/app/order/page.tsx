@@ -7,6 +7,7 @@ import { ShiftInfoPanel } from '@/components/ui/ShiftInfoPanel'
 import { FaSpinner, FaCog, FaHome, FaSignOutAlt, FaTable, FaClipboardList, FaUserClock, FaPrint } from 'react-icons/fa'
 import { TableGrid } from '@/components/order/TableGrid'
 import { OrderList } from '@/components/order/OrderList'
+import { PrintInvoiceList } from '@/components/order/PrintInvoiceList'
 import { useRouter } from 'next/navigation'
 
 interface Shift {
@@ -33,7 +34,7 @@ interface Shift {
 }
 
 type DropdownOption = 'logout' | 'settings' | 'all-orders'
-type TabType = 'home' | 'order' | 'shift'
+type TabType = 'home' | 'order' | 'shift' | 'print'
 
 interface Table {
   id: number;
@@ -426,6 +427,16 @@ export default function OrderPage() {
             >
               <FaUserClock className="inline-block mr-1" /> Thông tin ca
             </button>
+            <button
+              className={`px-4 py-2 text-sm font-medium ${
+                activeTab === 'print'
+                  ? 'border-b-2 border-primary-600 text-primary-600'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+              onClick={() => setActiveTab('print')}
+            >
+              <FaPrint className="inline-block mr-1" /> In hóa đơn
+            </button>
           </nav>
 
           <div className="mt-4">
@@ -440,6 +451,7 @@ export default function OrderPage() {
                 onCloseShift={handleCloseShiftRequest}
               />
             )}
+            {activeTab === 'print' && <PrintInvoiceList />}
           </div>
         </div>
       </main>

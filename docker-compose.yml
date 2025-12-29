@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=coffeeshop
+      - TZ=Asia/Ho_Chi_Minh
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    networks:
+      - coffee-network
+
+  backend:
+    build:
+      context: ./backendcoffeeshop
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/coffeeshop
+      # Add other environment variables from your .env here as needed
+      - TZ=Asia/Ho_Chi_Minh
+    volumes:
+      - ./image:/app/image
+    depends_on:
+      - db
+    networks:
+      - coffee-network
+
+  frontend:
+    build:
+      context: ./frontendcoffeeshop
+    restart: always
+    ports:
+      - "3001:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000 # Client-side calls
+      - API_URL=http://backend:8000 # Server-side rewrites
+      - TZ=Asia/Ho_Chi_Minh
+    depends_on:
+      - backend
+    networks:
+      - coffee-network
+
+volumes:
+  postgres_data:
+
+
+networks:
+  coffee-network:
+    driver: bridge

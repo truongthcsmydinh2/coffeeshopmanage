@@ -85,17 +85,18 @@ export function OrderPopup({ tableId, tableName, onClose, onOrderCreated }: Orde
   const [isSplitModalOpen, setIsSplitModalOpen] = useState(false)
   const [itemsToSplit, setItemsToSplit] = useState<OrderItem[]>([])
   const [isSplitting, setIsSplitting] = useState(false)
+  const [isCreating, setIsCreating] = useState(false)
   const printRef = useRef<HTMLDivElement>(null)
   const [printedOrder, setPrintedOrder] = useState<any>(null)
 
   const fetchMenu = useCallback(async () => {
     if (!isLoading) return
-    
+
     setIsLoading(true)
     try {
       const groupsRes = await fetch('http://192.168.99.166:8000/api/menu-groups/')
       const groupsData = await groupsRes.json()
-      
+
       if (groupsRes.ok) {
         const groups = Array.isArray(groupsData) ? groupsData : groupsData.results || []
         setMenuGroups(groups)
@@ -110,7 +111,7 @@ export function OrderPopup({ tableId, tableName, onClose, onOrderCreated }: Orde
 
       const itemsRes = await fetch('http://192.168.99.166:8000/api/menu-items/?limit=1000')
       const itemsData = await itemsRes.json()
-      
+
       if (itemsRes.ok) {
         const items = Array.isArray(itemsData) ? itemsData : itemsData.results || []
         setMenuItems(items)
@@ -172,14 +173,14 @@ export function OrderPopup({ tableId, tableName, onClose, onOrderCreated }: Orde
 
   // Filter items based on search query and selected group
   const filteredItems = (menuItems || []).filter((item: MenuItem) => {
-    const matchesSearch = searchQuery === '' || 
+    const matchesSearch = searchQuery === '' ||
       (item.name && item.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (item.code && item.code.toLowerCase().includes(searchQuery.toLowerCase()))
-    
+
     // Nếu có search query, tìm kiếm trên toàn bộ menu
     // Nếu không có search query, chỉ lọc theo nhóm đã chọn
     const matchesGroup = searchQuery === '' ? (!selectedGroupId || item.group_id === selectedGroupId) : true
-    
+
     return matchesSearch && matchesGroup
   })
 
@@ -235,6 +236,8 @@ export function OrderPopup({ tableId, tableName, onClose, onOrderCreated }: Orde
   }
 
   const handleCreateOrder = async () => {
+    if (isCreating) return
+
     if (!orderItems || orderItems.length === 0) {
       toast.error('Vui lòng chọn ít nhất một món!')
       return
@@ -245,6 +248,7 @@ export function OrderPopup({ tableId, tableName, onClose, onOrderCreated }: Orde
       return
     }
 
+    setIsCreating(true)
     try {
       // Tạo order data theo format của backend
       const orderData = {
@@ -283,14 +287,14 @@ export function OrderPopup({ tableId, tableName, onClose, onOrderCreated }: Orde
       if (response.ok) {
         const result = await response.json()
         toast.success('Tạo order thành công!')
-        
+
         // Print bill
         handlePrintBill()
-        
+
         // Close popup and refresh
         onClose()
         if (onOrderCreated) onOrderCreated()
-        
+
         // Dispatch event for other components
         window.dispatchEvent(new CustomEvent('orderUpdate', {
           detail: { type: 'created', order: result }
@@ -298,7 +302,7 @@ export function OrderPopup({ tableId, tableName, onClose, onOrderCreated }: Orde
       } else {
         const errorData = await response.json()
         console.error('Order creation error:', errorData)
-        
+
         // Hiển thị chi tiết lỗi
         let errorMessage = 'Không thể tạo order!'
         if (errorData.detail) {
@@ -313,6 +317,8 @@ export function OrderPopup({ tableId, tableName, onClose, onOrderCreated }: Orde
     } catch (error) {
       console.error('Error creating order:', error)
       toast.error('Có lỗi xảy ra khi tạo order!')
+    } finally {
+      setIsCreating(false)
     }
   }
 
@@ -322,8 +328,8 @@ export function OrderPopup({ tableId, tableName, onClose, onOrderCreated }: Orde
   }
 
   const handleToggleSplitItem = (item: OrderItem) => {
-    setItemsToSplit(prev => 
-      (prev || []).some(i => i.id === item.id) 
+    setItemsToSplit(prev =>
+      (prev || []).some(i => i.id === item.id)
         ? (prev || []).filter(i => i.id !== item.id)
         : [...(prev || []), item]
     )
@@ -379,7 +385,7 @@ export function OrderPopup({ tableId, tableName, onClose, onOrderCreated }: Orde
       } else {
         const errorData = await response.json()
         console.error('Split order error:', errorData)
-        
+
         // Hiển thị chi tiết lỗi
         let errorMessage = 'Không thể tách order!'
         if (errorData.detail) {
@@ -435,7 +441,7 @@ export function OrderPopup({ tableId, tableName, onClose, onOrderCreated }: Orde
           <h2 className="text-xl font-semibold">Order cho {tableName}</h2>
           <button onClick={onClose} className="text-gray-500 hover:text-red-600 text-2xl">×</button>
         </div>
-        
+
         <div className="flex-1 flex overflow-hidden">
           {/* Menu Section - Scrollable */}
           <div className="flex-1 overflow-auto p-4">
@@ -508,7 +514,7 @@ export function OrderPopup({ tableId, tableName, onClose, onOrderCreated }: Orde
                   </div>
                 ))}
               </div>
-              
+
               {(!filteredItems || filteredItems.length === 0) && (
                 <div className="text-center py-8 text-gray-500">
                   {searchQuery ? `Không tìm thấy món ăn nào phù hợp với "${searchQuery}"` : 'Không có món ăn nào'}
@@ -532,7 +538,7 @@ export function OrderPopup({ tableId, tableName, onClose, onOrderCreated }: Orde
                 )}
               </div>
             </div>
-            
+
             <div className="flex-1 overflow-auto p-4">
               {(!orderItems || orderItems.length === 0) ? (
                 <p className="text-gray-500 text-center py-8">Chưa có món nào được chọn</p>
@@ -587,7 +593,7 @@ export function OrderPopup({ tableId, tableName, onClose, onOrderCreated }: Orde
                 </div>
               )}
             </div>
-            
+
             {/* Fixed Bottom Section */}
             <div className="p-4 border-t bg-white">
               <div className="flex justify-between font-semibold text-sm mb-4">
@@ -596,10 +602,10 @@ export function OrderPopup({ tableId, tableName, onClose, onOrderCreated }: Orde
               </div>
               <button
                 onClick={handleCreateOrder}
-                disabled={!orderItems || orderItems.length === 0}
+                disabled={(!orderItems || orderItems.length === 0) || isCreating}
                 className="w-full bg-primary-600 text-white py-2 rounded-lg hover:bg-primary-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
               >
-                Tạo order
+                {isCreating ? 'Đang tạo...' : 'Tạo order'}
               </button>
             </div>
           </div>
@@ -609,13 +615,13 @@ export function OrderPopup({ tableId, tableName, onClose, onOrderCreated }: Orde
         {printedOrder && (
           <div className="print-bill" ref={printRef}>
             <h3>PHIẾU LÀM ĐỒ</h3>
-            <div style={{marginBottom: 12}}>Bàn: {tableName}</div>
+            <div style={{ marginBottom: 12 }}>Bàn: {tableName}</div>
             <hr />
             {printedOrder.items && printedOrder.items.map((item: any, idx: number) => (
               <div className="item-row" key={idx}>
                 <span className="item-name">{item.name || item.menu_item_name || ''}</span>
                 <span className="item-qty">x{item.quantity}</span>
-                {item.note && <div style={{fontSize: 14, fontWeight: 'normal', marginTop: 2}}>Ghi chú: {item.note}</div>}
+                {item.note && <div style={{ fontSize: 14, fontWeight: 'normal', marginTop: 2 }}>Ghi chú: {item.note}</div>}
               </div>
             ))}
           </div>

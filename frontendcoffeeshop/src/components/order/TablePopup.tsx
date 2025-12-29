@@ -388,6 +388,9 @@ export function TablePopup({ table, onClose, onStatusChange }: TablePopupProps) 
                         <div>
                           <p className="font-medium">Order #{order.id}</p>
                           <p className="text-sm text-red-500">
+                            {order.time_in ? new Date(order.time_in).toLocaleDateString('vi-VN') : 'N/A'}
+                          </p>
+                          <p className="text-xs text-gray-500">
                             {order.time_in ? new Date(order.time_in).toLocaleTimeString('vi-VN') : 'N/A'}
                           </p>
                         </div>
@@ -603,4 +606,4 @@ export function TablePopup({ table, onClose, onStatusChange }: TablePopupProps) 
       )}
     </div>
   )
-} 
+}

@@ -40,7 +40,7 @@ VIETNAM_TIMEZONE = timezone(timedelta(hours=7))
 
 def get_vietnam_time():
     """Lấy thời gian hiện tại theo múi giờ Việt Nam"""
-    return datetime.now(VIETNAM_TIMEZONE)
+    return datetime.now(VIETNAM_TIMEZONE).replace(tzinfo=None)
 
 def ensure_timezone(dt: datetime) -> datetime:
     """Đảm bảo datetime có timezone"""
@@ -460,7 +460,8 @@ async def create_order(order: OrderCreate, db: Session = Depends(get_db)):
                 "order": {
                     **response,
                     "time_in": response["time_in"].isoformat() if response["time_in"] else None,
-                    "time_out": response["time_out"].isoformat() if response["time_out"] else None
+                    "time_out": response["time_out"].isoformat() if response["time_out"] else None,
+                    "date": response["time_in"].strftime("%d/%m/%Y") if response["time_in"] else None
                 }
             }
         })
@@ -471,8 +472,8 @@ async def create_order(order: OrderCreate, db: Session = Depends(get_db)):
         # Gửi bill tới tất cả các máy in đang kết nối qua WebSocket
         bill_lines = [
             {"text": "PHIẾU LÀM ĐỒ", "fontSize": 14, "fontName": "Arial Black", "bold": True, "align": "center"},
-            {"text": f"Bàn: {table.name if table else f'Bàn {response['table_id']}'}", "fontSize": 10, "bold": False, "align": "left"},
-            {"text": f"Thời gian: {response['time_in'].strftime('%H:%M')}", "fontSize": 10, "bold": False, "align": "left"},
+            {"text": f"Bàn: {table.name if table else 'Bàn ' + str(response['table_id'])}", "fontSize": 10, "bold": False, "align": "left"},
+            {"text": f"Thời gian: {response['time_in'].strftime('%H:%M')} --- {response['time_in'].strftime('%d/%m/%Y')}", "fontSize": 10, "bold": False, "align": "left"},
             {"text": "---------------------------------", "fontSize": 16, "bold": False, "align": "left"},
         ]
 
@@ -600,7 +601,8 @@ async def pay_order(order_id: int, db: Session = Depends(get_db)):
                     "order_id": order_id,
                     "status": "completed",
                     "payment_status": "paid",
-                    "timestamp": datetime.now().isoformat()
+                    "timestamp": datetime.now().isoformat(),
+                    "date": order.time_out.strftime("%d/%m/%Y") if order.time_out else None
                 }
             })
             
@@ -770,7 +772,10 @@ async def update_order(order_id: int, order: OrderUpdate, db: Session = Depends(
             "type": "order_update",
             "data": {
                 "type": "updated",
-                "order": response_dict
+                "order": {
+                    **response_dict,
+                    "date": response_dict["time_in"].strftime("%d/%m/%Y") if response_dict["time_in"] else None
+                }
             }
         })
         
@@ -780,7 +785,7 @@ async def update_order(order_id: int, order: OrderUpdate, db: Session = Depends(
         # Gửi bill tới tất cả các máy in đang kết nối qua WebSocket
         bill_lines = [
             {"text": "PHIẾU LÀM ĐỒ", "fontSize": 14, "fontName": "Arial Black", "bold": True, "align": "center"},
-            {"text": f"Bàn: {table.name if table else f'Bàn {response_dict['table_id']}'}", "fontSize": 10, "bold": False, "align": "left"},
+            {"text": f"Bàn: {table.name if table else 'Bàn ' + str(response_dict['table_id'])}", "fontSize": 10, "bold": False, "align": "left"},
             {"text": f"Thời gian: {response_dict['time_in'].strftime('%H:%M')}", "fontSize": 10, "bold": False, "align": "left"},
             {"text": "---------------------------------", "fontSize": 16, "bold": False, "align": "left"},
         ]
@@ -984,7 +989,10 @@ async def transfer_table(
             "type": "order_update",
             "data": {
                 "type": "transferred",
-                "order": response_dict
+                "order": {
+                    **response_dict,
+                    "date": response_dict["time_in"].strftime("%d/%m/%Y") if response_dict["time_in"] else None
+                }
             }
         })
         
@@ -994,7 +1002,7 @@ async def transfer_table(
         # Gửi bill tới tất cả các máy in đang kết nối qua WebSocket
         bill_lines = [
             {"text": "PHIẾU LÀM ĐỒ", "fontSize": 14, "fontName": "Arial Black", "bold": True, "align": "center"},
-            {"text": f"Bàn: {table.name if table else f'Bàn {response_dict['table_id']}'}", "fontSize": 10, "bold": False, "align": "left"},
+            {"text": f"Bàn: {table.name if table else 'Bàn ' + str(response_dict['table_id'])}", "fontSize": 10, "bold": False, "align": "left"},
             {"text": f"Thời gian: {response_dict['time_in'].strftime('%H:%M')}", "fontSize": 10, "bold": False, "align": "left"},
             {"text": "---------------------------------", "fontSize": 16, "bold": False, "align": "left"},
         ]
@@ -1291,13 +1299,175 @@ async def print_order(order_id: int, db: Session = Depends(get_db)):
         ])
 
         # Gửi tới tất cả các máy in đang kết nối qua WebSocket
-        await printer_manager.broadcast({
-            "type": "print",
-            "data": bill_lines
-        })
+        logger.info("Gửi dữ liệu in qua WebSocket")
+        logger.info(f"Số lượng kết nối đang hoạt động: {len(printer_manager.active_printers)}")
+        logger.info(f"Dữ liệu in: {bill_lines}")
+        
+        success = False
+        for printer_id in printer_manager.active_printers.keys():
+            try:
+                result = await printer_manager.send_to_printer(printer_id, {
+                    "type": "print",
+                    "data": bill_lines,
+                    "timestamp": datetime.now().isoformat()  # Chuyển datetime thành string
+                })
+                if result:
+                    success = True
+                    logger.info(f"Đã gửi dữ liệu tới printer {printer_id}")
+            except Exception as e:
+                logger.error(f"Lỗi khi gửi dữ liệu tới printer {printer_id}: {str(e)}")
+        
+        if not success:
+            logger.warning("Không có máy in nào đang kết nối hoặc không thể gửi dữ liệu tới máy in")
 
         return {"success": True, "message": "Đã gửi hóa đơn tới máy in"}
 
     except Exception as e:
         logger.error(f"Lỗi khi in hóa đơn: {str(e)}")
-        return {"error": f"Lỗi khi in hóa đơn: {str(e)}"} 
+        return {"error": f"Lỗi khi in hóa đơn: {str(e)}"}
+
+class CombinedOrdersRequest(BaseModel):
+    order_ids: List[int]
+
+@router.post("/print-combined-orders")
+async def print_combined_orders(request: CombinedOrdersRequest, db: Session = Depends(get_db)):
+    try:
+        if not request.order_ids or len(request.order_ids) == 0:
+            return {"error": "Vui lòng chọn ít nhất một order"}
+
+        # Lấy tất cả các orders
+        orders = db.query(Order).filter(Order.id.in_(request.order_ids)).all()
+        if len(orders) != len(request.order_ids):
+            return {"error": "Một số order không tồn tại"}
+
+        # Lấy thông tin bàn từ order đầu tiên (hoặc có thể gộp nhiều bàn)
+        first_order = orders[0]
+        table = db.query(Table).filter(Table.id == first_order.table_id).first()
+        if not table:
+            return {"error": "Không tìm thấy thông tin bàn"}
+
+        # Lấy thông tin ca từ order đầu tiên
+        shift = db.query(Shift).filter(Shift.id == first_order.shift_id).first()
+        if not shift:
+            return {"error": "Không tìm thấy thông tin ca"}
+
+        # Lấy tất cả items từ các orders và gộp lại
+        all_items = db.query(OrderItem, MenuItem).join(
+            MenuItem, OrderItem.menu_item_id == MenuItem.id
+        ).filter(OrderItem.order_id.in_(request.order_ids)).all()
+
+        # Gộp items theo menu_item_id và note
+        items_map = {}
+        total_amount = 0
+        
+        for item, menu_item in all_items:
+            key = (item.menu_item_id, item.note or "")
+            if key not in items_map:
+                items_map[key] = {
+                    "menu_item": menu_item,
+                    "quantity": 0,
+                    "unit_price": item.unit_price,
+                    "total_price": 0,
+                    "note": item.note
+                }
+            items_map[key]["quantity"] += item.quantity
+            items_map[key]["total_price"] += item.total_price
+            total_amount += item.total_price
+
+        # Format bill
+        bill_lines = [
+            {"text": "HÓA ĐƠN GỘP", "fontSize": 14, "fontName": "Arial Black", "bold": True, "align": "center"},
+            {"text": f"Bàn: {table.name}", "fontSize": 10, "bold": False, "align": "left"},
+            {"text": f"Ca: {shift.shift_type}", "fontSize": 10, "bold": False, "align": "left"},
+            {"text": f"Số order: {len(request.order_ids)}", "fontSize": 10, "bold": False, "align": "left"},
+            {"text": f"Thời gian: {get_vietnam_time().strftime('%d/%m/%Y %H:%M')}", "fontSize": 10, "bold": False, "align": "left"},
+            {"text": "---------------------------------", "fontSize": 12, "bold": False, "align": "left"},
+        ]
+
+        # Header của bảng
+        header_name_part = "TÊN MÓN".ljust(NAME_COL_WIDTH)
+        header_qty_part = "SL".center(QTY_COL_WIDTH)
+        header_total_price_part = "TIỀN".rjust(PRICE_COL_WIDTH)
+        bill_lines.append({"text": f"{header_name_part}{header_qty_part}{header_total_price_part}", "fontSize": 12, "bold": True, "align": "left"})
+        bill_lines.append({"text": "---------------------------------", "fontSize": 16, "bold": False, "align": "left"})
+
+        # Thêm các items đã gộp
+        for (menu_item_id, note), item_data in items_map.items():
+            menu_item = item_data["menu_item"]
+            quantity = item_data["quantity"]
+            total_price = item_data["total_price"]
+            item_note = item_data["note"]
+            
+            # Format quantity and total price
+            qty_str = f"x{quantity}"
+            total_price_str = f"{int(total_price):,}"
+            
+            # Pad quantity and total price to fixed widths
+            item_qty_part = qty_str.center(QTY_COL_WIDTH)
+            item_total_price_part = total_price_str.rjust(PRICE_COL_WIDTH)
+            
+            # Wrap the item name
+            wrapped_name_lines = textwrap.wrap(menu_item.name, width=NAME_COL_WIDTH)
+            
+            # Add the first line with name, quantity, total price
+            if wrapped_name_lines:
+                first_name_part = wrapped_name_lines[0].ljust(NAME_COL_WIDTH)
+                item_line_text = f"{first_name_part}{item_qty_part}{item_total_price_part}"
+                bill_lines.append({
+                    "text": item_line_text,
+                    "fontSize": 12, "bold": False, "align": "left"
+                })
+                
+                # Add subsequent lines for wrapped name parts (indented)
+                for i in range(1, len(wrapped_name_lines)):
+                    bill_lines.append({
+                        "text": "  " + wrapped_name_lines[i].ljust(NAME_COL_WIDTH - 2),
+                        "fontSize": 12, "bold": False, "align": "left"
+                    })
+            
+            if item_note:
+                # Ghi chú thụt lề
+                bill_lines.append({"text": f"  Ghi chú: {item_note}", "fontSize": 12, "bold": False, "align": "left"})
+        
+        # Thêm tổng tiền
+        total_amount_str = f"{int(total_amount):,}"
+        
+        # Định dạng dòng tổng tiền
+        total_label_width = NAME_COL_WIDTH + QTY_COL_WIDTH
+        total_label_part = "TỔNG TIỀN:".ljust(total_label_width)
+        total_amount_part = total_amount_str.rjust(PRICE_COL_WIDTH)
+        
+        bill_lines.extend([
+            {"text": "---------------------------------", "fontSize": 16, "bold": False, "align": "left"},
+            {"text": f"{total_label_part}{total_amount_part}", "fontSize": 14, "bold": True, "align": "left"},
+            {"text": "---------------------------------", "fontSize": 16, "bold": False, "align": "left"},
+            {"text": "Cảm ơn quý khách!", "fontSize": 12, "bold": False, "align": "center"},
+        ])
+
+        # Gửi tới tất cả các máy in đang kết nối qua WebSocket
+        logger.info("Gửi dữ liệu in gộp qua WebSocket")
+        logger.info(f"Số lượng kết nối đang hoạt động: {len(printer_manager.active_printers)}")
+        logger.info(f"Dữ liệu in: {bill_lines}")
+        
+        success = False
+        for printer_id in printer_manager.active_printers.keys():
+            try:
+                result = await printer_manager.send_to_printer(printer_id, {
+                    "type": "print",
+                    "data": bill_lines,
+                    "timestamp": datetime.now().isoformat()
+                })
+                if result:
+                    success = True
+                    logger.info(f"Đã gửi dữ liệu tới printer {printer_id}")
+            except Exception as e:
+                logger.error(f"Lỗi khi gửi dữ liệu tới printer {printer_id}: {str(e)}")
+        
+        if not success:
+            logger.warning("Không có máy in nào đang kết nối hoặc không thể gửi dữ liệu tới máy in")
+
+        return {"success": True, "message": "Đã gửi hóa đơn gộp tới máy in"}
+
+    except Exception as e:
+        logger.error(f"Lỗi khi in hóa đơn gộp: {str(e)}")
+        return {"error": f"Lỗi khi in hóa đơn gộp: {str(e)}"}

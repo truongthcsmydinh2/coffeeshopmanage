@@ -16,6 +16,8 @@ from .api.shifts.create import router as shifts_create_router
 from .api.shifts.active import router as shifts_active_router
 from .api.shifts.close import router as shifts_close_router
 from .api.shifts.update import router as shifts_update_router
+from .api.shifts.all import router as shifts_all_router
+from .api.shifts.delete import router as shifts_delete_router
 from .api.v1.endpoints.orders import router as orders_router
 from .api.v1.endpoints import cancelled_items
 from sqlalchemy.exc import IntegrityError
@@ -43,8 +45,8 @@ app = FastAPI(
     openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
 
-# Mount static files
-app.mount("/image", StaticFiles(directory="/coffeeshopmanage/image"), name="image")
+# Mount static files for images
+app.mount("/image", StaticFiles(directory="/app/image"), name="image")
 
 # Cấu hình logging
 logging.basicConfig(
@@ -136,6 +138,8 @@ app.include_router(shifts_create_router, prefix="/api/shifts", tags=["shifts"])
 app.include_router(shifts_active_router, prefix="/api/shifts", tags=["shifts"])
 app.include_router(shifts_close_router, prefix="/api/shifts", tags=["shifts"])
 app.include_router(shifts_update_router, prefix="/api/shifts", tags=["shifts"])
+app.include_router(shifts_all_router, prefix="/api/shifts", tags=["shifts"])
+app.include_router(shifts_delete_router, prefix="/api/shifts", tags=["shifts"])
 app.include_router(dashboard_router, prefix="/api/v1/endpoints/dashboard", tags=["dashboard"])
 app.include_router(cancelled_items.router, prefix="/api/v1/endpoints/cancelled-items", tags=["cancelled-items"])
 
@@ -498,7 +502,8 @@ async def create_order(order: schemas.OrderCreate, db: Session = Depends(get_db)
             "type": "new_order",
             "data": {
                 "order_id": db_order.id,
-                "timestamp": datetime.now().isoformat()
+                "timestamp": datetime.now().isoformat(),
+                "date": db_order.time_in.strftime("%d/%m/%Y") if db_order.time_in else None
             }
         }))
         
@@ -1021,7 +1026,8 @@ async def update_order_status(order_id: int, status: str, db: Session = Depends(
         "data": {
             "order_id": order_id,
             "status": status,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
+            "date": db_order.time_in.strftime("%d/%m/%Y") if db_order.time_in else None
         }
     }))
     return db_order
@@ -1298,7 +1304,8 @@ async def close_all_orders(db: Session = Depends(get_db)):
                 "type": "close_all_orders",
                 "data": {
                     "count": len(active_orders),
-                    "timestamp": datetime.now().isoformat()
+                    "timestamp": datetime.now().isoformat(),
+                    "date": datetime.now().strftime("%d/%m/%Y")
                 }
             }))
         except Exception as e:
@@ -1313,4 +1320,4 @@ async def close_all_orders(db: Session = Depends(get_db)):
         )
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000) 
+    uvicorn.run(app, host="0.0.0.0", port=8000)

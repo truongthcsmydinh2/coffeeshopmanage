@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { FaLock, FaTrash, FaCalendarAlt, FaClock, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 import { tables } from '@/config/tables';
+import { getTodayVietnam } from '@/utils/dateUtils';
 
 interface OrderItem {
   id: number;
@@ -40,8 +41,7 @@ const AdminPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>(() => {
-    const today = new Date();
-    return today.toISOString().split('T')[0];
+    return getTodayVietnam();
   });
 
   const handleCheckPassword = () => {
@@ -131,8 +131,7 @@ const AdminPage: React.FC = () => {
   };
 
   const handleTodayClick = () => {
-    const today = new Date();
-    setSelectedDate(today.toISOString().split('T')[0]);
+    setSelectedDate(getTodayVietnam());
     fetchOrders();
   };
 
@@ -181,26 +180,26 @@ const AdminPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <div className="min-h-screen bg-gray-50 p-1 sm:p-4">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6">Trang Quản Trị</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-6 px-2 sm:px-0">Trang Quản Trị</h1>
         
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden mb-8">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-2xl font-bold mb-4">Quản lý Order</h2>
-            <div className="flex items-center space-x-4">
+        <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl overflow-hidden mb-3 sm:mb-8">
+          <div className="p-4 sm:p-6 border-b border-gray-200">
+            <h2 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">Quản lý Order</h2>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
               <button
                 onClick={handleTodayClick}
-                className="flex items-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                className="flex items-center px-4 sm:px-6 py-3 sm:py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-200 shadow-md hover:shadow-lg text-base sm:text-base w-full sm:w-auto justify-center font-medium"
               >
                 <FaCalendarAlt className="mr-2" /> Hôm nay
               </button>
-              <div className="relative">
+              <div className="relative w-full sm:w-auto">
                 <input
                   type="date"
                   value={selectedDate}
                   onChange={handleDateChange}
-                  className="px-6 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-200"
+                  className="px-4 sm:px-6 py-3 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-200 w-full text-base sm:text-base"
                 />
               </div>
             </div>
@@ -219,22 +218,22 @@ const AdminPage: React.FC = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-sm sm:text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Mã Order
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-sm sm:text-xs font-semibold text-gray-600 uppercase tracking-wider hidden sm:table-cell">
                       Bàn
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-sm sm:text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Tổng tiền
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-sm sm:text-xs font-semibold text-gray-600 uppercase tracking-wider hidden md:table-cell">
                       Thời gian
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-sm sm:text-xs font-semibold text-gray-600 uppercase tracking-wider hidden lg:table-cell">
                       Trạng thái
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-sm sm:text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Thao tác
                     </th>
                   </tr>
@@ -242,27 +241,45 @@ const AdminPage: React.FC = () => {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {orders.map((order) => (
                     <React.Fragment key={order.id}>
-                      <tr className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">{order.order_code}</div>
+                      <tr 
+                        className="hover:bg-gray-50 cursor-pointer transition-colors duration-200"
+                        onClick={() => toggleOrderDetails(order.id)}
+                      >
+                        <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
+                          <div className="text-sm sm:text-sm font-medium text-gray-900">{order.order_code}</div>
+                          <div className="text-sm text-gray-500 sm:hidden font-medium">{getTableName(order.table_id)}</div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap hidden sm:table-cell">
                           <div className="text-sm text-gray-900">{getTableName(order.table_id)}</div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
+                        <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
+                          <div className="text-sm sm:text-sm font-bold text-gray-900">
                             {order.total_amount.toLocaleString('vi-VN')} ₫
                           </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center text-sm text-gray-900">
-                            <FaClock className="mr-2 text-gray-400" />
-                            {new Date(order.time_in).toLocaleTimeString('vi-VN')}
+                          <div className="text-xs md:hidden mt-1 space-y-0.5">
+                            <div className="text-gray-600 font-medium flex items-center">
+                              <FaClock className="mr-1.5 text-gray-400 text-xs" />
+                              {new Date(order.time_in).toLocaleDateString('vi-VN')}
+                            </div>
+                            <div className="text-gray-500 ml-5">
+                              {new Date(order.time_in).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+                            </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap hidden md:table-cell">
+                          <div className="flex flex-col text-sm text-gray-900">
+                            <div className="flex items-center">
+                              <FaClock className="mr-2 text-gray-400" />
+                              {new Date(order.time_in).toLocaleDateString('vi-VN')}
+                            </div>
+                            <div className="text-sm text-gray-500 ml-6">
+                              {new Date(order.time_in).toLocaleTimeString('vi-VN')}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap hidden lg:table-cell">
                           <span
-                            className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            className={`px-3 sm:px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full ${
                               order.status === 'pending'
                                 ? 'bg-yellow-100 text-yellow-800'
                                 : order.status === 'active'
@@ -281,17 +298,17 @@ const AdminPage: React.FC = () => {
                               : 'Đã hủy'}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          <div className="flex items-center space-x-3">
+                        <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm text-gray-500" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center space-x-3 sm:space-x-3">
                             <button
                               onClick={() => toggleOrderDetails(order.id)}
-                              className="text-gray-400 hover:text-gray-600"
+                              className="text-gray-400 hover:text-gray-600 p-2 text-lg"
                             >
                               {expandedOrderId === order.id ? <FaChevronUp /> : <FaChevronDown />}
                             </button>
                             <button
                               onClick={() => handleDeleteOrder(order.id)}
-                              className="text-red-500 hover:text-red-700"
+                              className="text-red-500 hover:text-red-700 p-2 text-lg"
                             >
                               <FaTrash />
                             </button>
@@ -300,29 +317,29 @@ const AdminPage: React.FC = () => {
                       </tr>
                       {expandedOrderId === order.id && (
                         <tr>
-                          <td colSpan={6} className="px-6 py-6 bg-gray-50">
-                            <div className="space-y-4">
-                              <h4 className="text-lg font-semibold text-gray-900">Chi tiết đồ uống:</h4>
-                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                          <td colSpan={6} className="px-4 sm:px-6 py-4 sm:py-6 bg-gray-50">
+                            <div className="space-y-4 sm:space-y-4">
+                              <h4 className="text-lg sm:text-lg font-semibold text-gray-900">Chi tiết đồ uống:</h4>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-4">
                                 {order.items.map((item) => (
                                   <div 
                                     key={item.id} 
-                                    className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200"
+                                    className="bg-white p-4 sm:p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200"
                                   >
-                                    <p className="font-medium text-gray-900 mb-2">{item.name}</p>
-                                    <div className="space-y-1">
-                                      <p className="text-sm text-gray-600">
-                                        <span className="font-medium">Số lượng:</span> {item.quantity}
+                                    <p className="font-bold text-gray-900 mb-3 text-base sm:text-base">{item.name}</p>
+                                    <div className="space-y-2">
+                                      <p className="text-sm sm:text-sm text-gray-600">
+                                        <span className="font-semibold">Số lượng:</span> {item.quantity}
                                       </p>
-                                      <p className="text-sm text-gray-600">
-                                        <span className="font-medium">Đơn giá:</span> {item.unit_price.toLocaleString('vi-VN')} ₫
+                                      <p className="text-sm sm:text-sm text-gray-600">
+                                        <span className="font-semibold">Đơn giá:</span> {item.unit_price.toLocaleString('vi-VN')} ₫
                                       </p>
-                                      <p className="text-sm text-gray-600">
-                                        <span className="font-medium">Thành tiền:</span> {item.total_price.toLocaleString('vi-VN')} ₫
+                                      <p className="text-sm sm:text-sm text-gray-600 font-medium">
+                                        <span className="font-semibold">Thành tiền:</span> {item.total_price.toLocaleString('vi-VN')} ₫
                                       </p>
                                       {item.note && (
-                                        <p className="text-sm text-gray-600">
-                                          <span className="font-medium">Ghi chú:</span> {item.note}
+                                        <p className="text-sm sm:text-sm text-gray-600">
+                                          <span className="font-semibold">Ghi chú:</span> {item.note}
                                         </p>
                                       )}
                                     </div>
@@ -345,4 +362,4 @@ const AdminPage: React.FC = () => {
   );
 };
 
-export default AdminPage; 
+export default AdminPage;

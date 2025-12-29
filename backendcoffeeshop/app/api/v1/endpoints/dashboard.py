@@ -3,8 +3,8 @@ from sqlalchemy.orm import Session
 from app.models import Order, Shift, OrderItem, MenuItem, Table
 from app.database.database import get_db
 from datetime import datetime, timedelta, time
-from typing import Dict
-from sqlalchemy import func
+from typing import Dict, List
+from sqlalchemy import func, desc, cast, Time
 import requests
 import json
 import asyncio
@@ -313,4 +313,114 @@ async def print_shift_report(
         logger.error("Không thể gửi dữ liệu tới bất kỳ máy in nào")
         return {"error": "Không thể gửi dữ liệu tới máy in. Vui lòng kiểm tra kết nối máy in."}
         
-    return {"success": True, "message": "Đã gửi biên bản đóng ca tới máy in"} 
+    return {"success": True, "message": "Đã gửi biên bản đóng ca tới máy in"}
+
+@router.get("/menu-stats")
+def menu_stats(
+    start_date: str = Query(..., description="YYYY-MM-DD"), 
+    end_date: str = Query(..., description="YYYY-MM-DD"), 
+    filter_type: str = Query("range", description="range/day/week/month/year"),
+    db: Session = Depends(get_db)
+) -> Dict:
+    try:
+        start_target_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+        end_target_date = datetime.strptime(end_date, "%Y-%m-%d").date()
+    except Exception:
+        return {"error": "Sai định dạng ngày. Đúng: YYYY-MM-DD"}
+
+    # Kiểm tra ngày bắt đầu không được lớn hơn ngày kết thúc
+    if start_target_date > end_target_date:
+        return {"error": "Ngày bắt đầu không được lớn hơn ngày kết thúc"}
+
+    # Xác định khoảng thời gian
+    start_dt = datetime.combine(start_target_date, time(0, 0, 0))
+    end_dt = datetime.combine(end_target_date, time(23, 59, 59))
+
+    # Truy vấn tổng thống kê món ăn
+    total_query = db.query(
+        MenuItem.id,
+        MenuItem.name,
+        MenuItem.price,
+        func.sum(OrderItem.quantity).label('total_quantity'),
+        func.sum(OrderItem.quantity * MenuItem.price).label('total_revenue')
+    ).join(
+        OrderItem, MenuItem.id == OrderItem.menu_item_id
+    ).join(
+        Order, OrderItem.order_id == Order.id
+    ).filter(
+        Order.time_in >= start_dt,
+        Order.time_in <= end_dt,
+        Order.status == 'completed'
+    ).group_by(
+        MenuItem.id, MenuItem.name, MenuItem.price
+    ).order_by(
+        desc('total_quantity')
+    ).all()
+
+    # Hàm helper để lấy số lượng theo ca dựa trên thời gian
+    def get_shift_quantity_by_time(menu_item_id, shift_type):
+        # Xác định khoảng thời gian cho từng ca
+        if shift_type == 'morning':
+            shift_start = time(6, 0)  # 6:00 AM
+            shift_end = time(12, 0)   # 12:00 PM
+        elif shift_type == 'afternoon':
+            shift_start = time(12, 0)  # 12:00 PM
+            shift_end = time(18, 0)    # 6:00 PM
+        elif shift_type == 'evening':
+            shift_start = time(18, 0)  # 6:00 PM
+            shift_end = time(23, 59)   # 11:59 PM
+        else:
+            return 0
+            
+        result = db.query(
+            func.sum(OrderItem.quantity).label('quantity')
+        ).join(
+            Order, OrderItem.order_id == Order.id
+        ).filter(
+            OrderItem.menu_item_id == menu_item_id,
+            Order.time_in >= start_dt,
+            Order.time_in <= end_dt,
+            Order.status == 'completed',
+            cast(Order.time_in, Time) >= shift_start,
+            cast(Order.time_in, Time) < shift_end
+        ).scalar()
+        return result or 0
+
+    # Tính tổng số lượng và doanh thu
+    total_quantity = sum(item.total_quantity for item in total_query)
+    total_revenue = sum(item.total_revenue for item in total_query)
+    total_items = len(total_query)
+
+    # Format dữ liệu trả về với thông tin theo ca
+    menu_items = []
+    for item in total_query:
+        morning_qty = get_shift_quantity_by_time(item.id, 'morning')
+        afternoon_qty = get_shift_quantity_by_time(item.id, 'afternoon')
+        evening_qty = get_shift_quantity_by_time(item.id, 'evening')
+        
+        percentage = (item.total_quantity / total_quantity * 100) if total_quantity > 0 else 0
+        menu_items.append({
+            "id": item.id,
+            "name": item.name,
+            "price": item.price,
+            "total_quantity": item.total_quantity,
+            "morning_quantity": morning_qty,
+            "afternoon_quantity": afternoon_qty,
+            "evening_quantity": evening_qty,
+            "revenue": item.total_revenue,
+            "percentage": round(percentage, 2)
+        })
+
+    return {
+        "filter_type": filter_type,
+        "date_range": {
+            "start": start_dt.strftime("%Y-%m-%d %H:%M:%S"),
+            "end": end_dt.strftime("%Y-%m-%d %H:%M:%S")
+        },
+        "summary": {
+            "total_items": total_items,
+            "total_quantity": total_quantity,
+            "total_revenue": total_revenue
+        },
+        "items": menu_items
+    }

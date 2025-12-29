@@ -210,14 +210,18 @@ export default function AllOrdersPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center text-sm text-gray-900">
-                          <FaClock className="mr-2 text-gray-400" />
-                          {new Date(order.time_in).toLocaleTimeString('vi-VN')}
+                        <div className="text-sm font-medium text-gray-900">
+                          {order.time_in ? new Date(order.time_in).toLocaleDateString('vi-VN') : '-'}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {order.time_in ? new Date(order.time_in).toLocaleTimeString('vi-VN') : '-'}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center text-sm text-gray-900">
-                          <FaClock className="mr-2 text-gray-400" />
+                        <div className="text-sm font-medium text-gray-900">
+                          {order.time_out ? new Date(order.time_out).toLocaleDateString('vi-VN') : '-'}
+                        </div>
+                        <div className="text-xs text-gray-500">
                           {order.time_out ? new Date(order.time_out).toLocaleTimeString('vi-VN') : '-'}
                         </div>
                       </td>
@@ -294,4 +298,4 @@ export default function AllOrdersPage() {
       </div>
     </div>
   )
-} 
+}
