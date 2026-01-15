@@ -30,8 +30,7 @@ export function StaffSettings() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  // URL tuyệt đối cho backend nếu cần dùng
-  const apiBaseUrl = 'http://192.168.99.166:8000'
+
 
   // Fetch staff list when component mounts
   useEffect(() => {
@@ -42,14 +41,8 @@ export function StaffSettings() {
     try {
       setLoading(true)
       let response;
-      try {
-        // Thử với URL tương đối trước
-        response = await axios.get('/api/staff/')
-      } catch (err) {
-        console.error('Lỗi khi gọi API tương đối, thử URL tuyệt đối:', err)
-        // Nếu lỗi, thử gọi API với URL tuyệt đối
-        response = await axios.get(`${apiBaseUrl}/api/staff/`)
-      }
+      // Thử với URL tương đối trước
+      response = await axios.get('/api/staff/')
       console.log('Dữ liệu nhân viên từ API:', response.data);
       setStaffList(response.data)
       setError('')
@@ -71,14 +64,8 @@ export function StaffSettings() {
       setLoading(true)
       console.log('Dữ liệu gửi đi:', newStaff);
       let response;
-      try {
-        // Thử với URL tương đối trước
-        response = await axios.post('/api/staff/', newStaff)
-      } catch (err) {
-        console.error('Lỗi khi gọi API tương đối, thử URL tuyệt đối:', err)
-        // Nếu lỗi, thử gọi API với URL tuyệt đối
-        response = await axios.post(`${apiBaseUrl}/api/staff/`, newStaff)
-      }
+      // Thử với URL tương đối trước
+      response = await axios.post('/api/staff/', newStaff)
       console.log('Phản hồi từ API:', response.data);
       setStaffList([...staffList, response.data])
       setNewStaff({
@@ -103,14 +90,8 @@ export function StaffSettings() {
   const handleDeleteStaff = async (id: string) => {
     try {
       setLoading(true)
-      try {
-        // Thử với URL tương đối trước
-        await axios.delete(`/api/staff/${id}`)
-      } catch (err) {
-        console.error('Lỗi khi gọi API tương đối, thử URL tuyệt đối:', err)
-        // Nếu lỗi, thử gọi API với URL tuyệt đối
-        await axios.delete(`${apiBaseUrl}/api/staff/${id}`)
-      }
+      // Thử với URL tương đối trước
+      await axios.delete(`/api/staff/${id}`)
       setStaffList(staffList.filter(staff => staff.id !== id))
       setError('')
     } catch (err) {
@@ -128,7 +109,7 @@ export function StaffSettings() {
           {error}
         </div>
       )}
-      
+
       {/* Form thêm nhân viên */}
       <div className="bg-gradient-to-r from-primary-50 to-primary-100 rounded-xl p-6">
         <h2 className="text-xl font-semibold text-primary-900 mb-6">Thêm nhân viên mới</h2>
@@ -268,7 +249,7 @@ export function StaffSettings() {
                       <button className="text-primary-600 hover:text-primary-900 mr-4">
                         ✏️ Sửa
                       </button>
-                      <button 
+                      <button
                         className="text-red-600 hover:text-red-900"
                         onClick={() => handleDeleteStaff(staff.id)}
                         disabled={loading}

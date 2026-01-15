@@ -45,7 +45,7 @@ export default function Page({ params }: { params: { orderId: string } }) {
   const fetchOrder = async () => {
     try {
       setLoading(true)
-      const res = await fetch(`http://192.168.99.166:8000/orders/${orderId}`)
+      const res = await fetch(`/orders/${orderId}`)
       if (res.ok) {
         const data = await res.json()
         console.log('Order items from API:', data.items)
@@ -87,7 +87,7 @@ export default function Page({ params }: { params: { orderId: string } }) {
       return
     }
     try {
-      const res = await fetch(`http://192.168.99.166:8000/api/orders/${orderId}/pay`, {
+      const res = await fetch(`/api/orders/${orderId}/pay`, {
         method: 'POST',
       })
       const data = await res.json()

@@ -50,12 +50,12 @@ interface MenuItemImageProps {
 function MenuItemImage({ code, alt, ...props }: MenuItemImageProps) {
   const extensions = ['jpg', 'png', 'jpeg', 'webp'];
   const [imgIndex, setImgIndex] = useState(0);
-  const [imgSrc, setImgSrc] = useState(`http://192.168.99.166:8000/image/images/${code}.${extensions[0]}`);
+  const [imgSrc, setImgSrc] = useState(`/image/images/${code}.${extensions[0]}`);
   const handleError = () => {
     if (imgIndex < extensions.length - 1) {
       const nextIndex = imgIndex + 1;
       setImgIndex(nextIndex);
-      setImgSrc(`http://192.168.99.166:8000/image/images/${code}.${extensions[nextIndex]}`);
+      setImgSrc(`/image/images/${code}.${extensions[nextIndex]}`);
     } else {
       setImgSrc('/default-image.png');
     }
@@ -94,7 +94,7 @@ export default function OrderForm({ orderData, onSubmit }: OrderFormProps) {
     setIsLoading(true)
     try {
       // Lấy danh sách nhóm menu
-      const groupsRes = await fetch('http://192.168.99.166:8000/api/menu-groups/')
+      const groupsRes = await fetch('/api/menu-groups/')
       const groupsData = await groupsRes.json()
       
       if (groupsRes.ok) {
@@ -107,7 +107,7 @@ export default function OrderForm({ orderData, onSubmit }: OrderFormProps) {
       }
 
       // Lấy danh sách món ăn
-      const itemsRes = await fetch('http://192.168.99.166:8000/api/menu-items/?limit=1000')
+      const itemsRes = await fetch('/api/menu-items/?limit=1000')
       const itemsData = await itemsRes.json()
       
       if (itemsRes.ok) {
@@ -200,7 +200,7 @@ export default function OrderForm({ orderData, onSubmit }: OrderFormProps) {
       return
     }
     try {
-      await fetch('http://192.168.99.166:8000/api/v1/cancelled-items/', {
+      await fetch('/api/v1/cancelled-items/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -261,7 +261,7 @@ export default function OrderForm({ orderData, onSubmit }: OrderFormProps) {
 
         console.log('Update payload:', updateData); // Log để debug
 
-        const response = await fetch(`http://192.168.99.166:8000/api/v1/orders/${orderData.id}`, {
+        const response = await fetch(`/api/v1/orders/${orderData.id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',

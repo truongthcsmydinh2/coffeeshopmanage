@@ -62,7 +62,7 @@ export function MenuSettings() {
   const [showBulkInput, setShowBulkInput] = useState(false)
   const [bulkGroupInput, setBulkGroupInput] = useState('')
   const [showBulkGroupInput, setShowBulkGroupInput] = useState(false)
-  
+
   const [editingItem, setEditingItem] = useState<EditingMenuItem | null>(null)
   const [editingGroup, setEditingGroup] = useState<EditingMenuGroup | null>(null)
   const [isEditMode, setIsEditMode] = useState(false)
@@ -77,25 +77,19 @@ export function MenuSettings() {
     try {
       // Lấy danh sách nhóm thực đơn
       console.log('Fetching menu groups...')
-      let groupsResponse;
-      try {
-        // Thử gọi API với URL tương đối trước
-        groupsResponse = await fetch('/api/menu-groups/')
-      } catch (err) {
-        console.error('Lỗi khi gọi API tương đối, thử URL tuyệt đối:', err)
-        // Nếu lỗi, thử gọi API với URL tuyệt đối
-        groupsResponse = await fetch('http://192.168.99.166:8000/api/menu-groups/')
-      }
-      
+      // Lấy danh sách nhóm thực đơn
+      console.log('Fetching menu groups...')
+      const groupsResponse = await fetch('/api/menu-groups/')
+
       console.log('Menu groups response status:', groupsResponse.status)
-      
+
       if (!groupsResponse.ok) {
         throw new Error(`HTTP error! status: ${groupsResponse.status}`)
       }
-      
+
       const groupsData = await groupsResponse.json()
       console.log('Menu groups data:', groupsData)
-      
+
       // Kiểm tra cấu trúc dữ liệu
       let groups = []
       if (Array.isArray(groupsData)) {
@@ -106,31 +100,25 @@ export function MenuSettings() {
         // Nếu là object đơn lẻ, chuyển thành mảng
         groups = [groupsData]
       }
-      
+
       console.log('Processed groups:', groups)
       setMenuGroups(groups)
 
       // Lấy danh sách món ăn
       console.log('Fetching menu items...')
-      let itemsResponse;
-      try {
-        // Thử gọi API với URL tương đối trước
-        itemsResponse = await fetch('/api/menu-items/?limit=1000')
-      } catch (err) {
-        console.error('Lỗi khi gọi API tương đối, thử URL tuyệt đối:', err)
-        // Nếu lỗi, thử gọi API với URL tuyệt đối
-        itemsResponse = await fetch('http://192.168.99.166:8000/api/menu-items/?limit=1000')
-      }
-      
+      // Lấy danh sách món ăn
+      console.log('Fetching menu items...')
+      const itemsResponse = await fetch('/api/menu-items/?limit=1000')
+
       console.log('Menu items response status:', itemsResponse.status)
-      
+
       if (!itemsResponse.ok) {
         throw new Error(`HTTP error! status: ${itemsResponse.status}`)
       }
-      
+
       const itemsData = await itemsResponse.json()
       console.log('Menu items data:', itemsData)
-      
+
       let items = []
       if (Array.isArray(itemsData)) {
         items = itemsData
@@ -139,10 +127,10 @@ export function MenuSettings() {
       } else if (itemsData && typeof itemsData === 'object') {
         items = [itemsData]
       }
-      
+
       console.log('Processed items:', items)
       setMenuItems(items)
-      
+
       setError(null)
     } catch (err: any) {
       console.error('Lỗi khi lấy dữ liệu:', err)
@@ -199,7 +187,7 @@ export function MenuSettings() {
 
   const handleSave = async () => {
     if (!editingItem) return
-    
+
     if (!editingItem.name || !editingItem.code) {
       alert('Vui lòng nhập đầy đủ mã món và tên món')
       return
@@ -207,39 +195,22 @@ export function MenuSettings() {
 
     try {
       setLoading(true)
-      
+
       const method = isEditMode ? 'PUT' : 'POST'
-      let url = isEditMode 
+      let url = isEditMode
         ? `/api/menu-items/${editingItem.id}`
         : '/api/menu-items/'
-      
+
       let response;
-      try {
-        // Thử gọi API với URL tương đối trước
-        console.log('Đang gửi request với data:', JSON.stringify(editingItem))
-        response = await fetch(url, {
-          method,
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(editingItem)
-        })
-      } catch (err) {
-        console.error('Lỗi khi gọi API tương đối, thử URL tuyệt đối:', err)
-        // Nếu lỗi, thử gọi API với URL tuyệt đối
-        const absoluteUrl = isEditMode 
-          ? `http://192.168.99.166:8000/api/menu-items/${editingItem.id}`
-          : 'http://192.168.99.166:8000/api/menu-items/'
-          
-        console.log('Đang gửi request với URL tuyệt đối và data:', JSON.stringify(editingItem))
-        response = await fetch(absoluteUrl, {
-          method,
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(editingItem)
-        })
-      }
+      // Thử gọi API với URL tương đối trước
+      console.log('Đang gửi request với data:', JSON.stringify(editingItem))
+      response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(editingItem)
+      })
 
       if (!response.ok) {
         const errorText = await response.text()
@@ -253,15 +224,15 @@ export function MenuSettings() {
       }
 
       const savedItem = await response.json()
-      
+
       if (isEditMode) {
-        setMenuItems(menuItems.map(item => 
+        setMenuItems(menuItems.map(item =>
           item.id === savedItem.id ? savedItem : item
         ))
       } else {
         setMenuItems([...menuItems, savedItem])
       }
-      
+
       resetForm()
       setError(null)
       alert(isEditMode ? 'Đã cập nhật món thành công!' : 'Đã thêm món mới thành công!')
@@ -280,20 +251,12 @@ export function MenuSettings() {
 
     try {
       setLoading(true)
-      
+
       let response;
-      try {
-        // Thử gọi API với URL tương đối trước
-        response = await fetch(`/api/menu-items/${id}`, {
-          method: 'DELETE'
-        })
-      } catch (err) {
-        console.error('Lỗi khi gọi API tương đối, thử URL tuyệt đối:', err)
-        // Nếu lỗi, thử gọi API với URL tuyệt đối
-        response = await fetch(`http://192.168.99.166:8000/api/menu-items/${id}`, {
-          method: 'DELETE'
-        })
-      }
+      // Thử gọi API với URL tương đối trước
+      response = await fetch(`/api/menu-items/${id}`, {
+        method: 'DELETE'
+      })
 
       if (!response.ok) {
         const errorData = await response.json()
@@ -324,7 +287,7 @@ export function MenuSettings() {
 
   const handleSaveGroup = async () => {
     if (!editingGroup) return
-    
+
     if (!editingGroup.name) {
       alert('Vui lòng nhập tên nhóm')
       return
@@ -332,12 +295,12 @@ export function MenuSettings() {
 
     try {
       setLoading(true)
-      
+
       const method = isGroupEditMode ? 'PUT' : 'POST'
-      const url = isGroupEditMode 
+      const url = isGroupEditMode
         ? `/api/menu-groups/${editingGroup.id}`
         : '/api/menu-groups/'
-      
+
       const response = await fetch(url, {
         method,
         headers: {
@@ -352,15 +315,15 @@ export function MenuSettings() {
       }
 
       const savedGroup = await response.json()
-      
+
       if (isGroupEditMode) {
-        setMenuGroups(menuGroups.map(group => 
+        setMenuGroups(menuGroups.map(group =>
           group.id === savedGroup.id ? savedGroup : group
         ))
       } else {
         setMenuGroups([...menuGroups, savedGroup])
       }
-      
+
       resetForm()
       setError(null)
       alert(isGroupEditMode ? 'Đã cập nhật nhóm thành công!' : 'Đã thêm nhóm mới thành công!')
@@ -378,14 +341,14 @@ export function MenuSettings() {
       alert(`Không thể xóa nhóm này vì có ${itemsInGroup.length} món đang thuộc nhóm. Vui lòng xóa các món trước.`)
       return
     }
-    
+
     if (!confirm('Bạn có chắc chắn muốn xóa nhóm này không?')) {
       return
     }
 
     try {
       setLoading(true)
-      
+
       const response = await fetch(`/api/menu-groups/${id}`, {
         method: 'DELETE'
       })
@@ -483,20 +446,20 @@ export function MenuSettings() {
 
     try {
       setLoading(true)
-      
+
       // Phân tích dữ liệu từ textarea
       const lines = bulkGroupInput.split('\n')
       const groups: BulkMenuGroup[] = []
-      
+
       for (const line of lines) {
         if (!line.trim()) continue
-        
+
         const [name, description] = line.split('\t')
         if (!name) {
           alert(`Dòng không hợp lệ: ${line}`)
           return
         }
-        
+
         groups.push({
           name: name.trim(),
           description: description?.trim()
@@ -562,33 +525,31 @@ export function MenuSettings() {
           <span className="block sm:inline"> {error}</span>
         </div>
       )}
-      
+
       {/* Tab chuyển đổi */}
       <div className="flex space-x-1 rounded-lg bg-primary-100 p-1">
         <button
           onClick={() => setActiveTab('items')}
-          className={`flex items-center justify-center px-4 py-2 rounded-md font-medium transition-colors ${
-            activeTab === 'items'
-              ? 'bg-white text-primary-800 shadow-sm'
-              : 'text-primary-600 hover:bg-white/30'
-          }`}
+          className={`flex items-center justify-center px-4 py-2 rounded-md font-medium transition-colors ${activeTab === 'items'
+            ? 'bg-white text-primary-800 shadow-sm'
+            : 'text-primary-600 hover:bg-white/30'
+            }`}
         >
           <FaCoffee className="mr-2" />
           Món ăn
         </button>
         <button
           onClick={() => setActiveTab('groups')}
-          className={`flex items-center justify-center px-4 py-2 rounded-md font-medium transition-colors ${
-            activeTab === 'groups'
-              ? 'bg-white text-primary-800 shadow-sm'
-              : 'text-primary-600 hover:bg-white/30'
-          }`}
+          className={`flex items-center justify-center px-4 py-2 rounded-md font-medium transition-colors ${activeTab === 'groups'
+            ? 'bg-white text-primary-800 shadow-sm'
+            : 'text-primary-600 hover:bg-white/30'
+            }`}
         >
           <FaLayerGroup className="mr-2" />
           Nhóm thực đơn
         </button>
       </div>
-      
+
       {activeTab === 'items' ? (
         <>
           {/* Form thêm/sửa món */}
@@ -839,7 +800,7 @@ export function MenuSettings() {
                   <input
                     type="text"
                     value={editingGroup?.name || ''}
-                    onChange={(e) => setEditingGroup(prev => prev ? {...prev, name: e.target.value} : null)}
+                    onChange={(e) => setEditingGroup(prev => prev ? { ...prev, name: e.target.value } : null)}
                     className="w-full rounded-lg border-primary-200 focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
                     placeholder="Nhập tên nhóm thực đơn"
                   />
@@ -849,7 +810,7 @@ export function MenuSettings() {
                   <input
                     type="text"
                     value={editingGroup?.description || ''}
-                    onChange={(e) => setEditingGroup(prev => prev ? {...prev, description: e.target.value} : null)}
+                    onChange={(e) => setEditingGroup(prev => prev ? { ...prev, description: e.target.value } : null)}
                     className="w-full rounded-lg border-primary-200 focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
                     placeholder="Nhập mô tả nhóm (tùy chọn)"
                   />
@@ -916,7 +877,7 @@ export function MenuSettings() {
                   ) : (
                     menuGroups.map((group) => {
                       const itemCount = menuItems.filter(item => item.group_id === group.id).length
-                      
+
                       return (
                         <tr key={group.id} className="hover:bg-gray-50">
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">

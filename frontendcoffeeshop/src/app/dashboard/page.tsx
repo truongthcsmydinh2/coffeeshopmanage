@@ -25,14 +25,14 @@ export default function DashboardPage() {
   const [menuStatsFilter, setMenuStatsFilter] = useState<'today' | 'this_week' | 'last_week' | 'this_month' | 'last_month' | 'custom'>('today')
   const [menuStatsStartDate, setMenuStatsStartDate] = useState<string>('')
   const [menuStatsEndDate, setMenuStatsEndDate] = useState<string>('')
-  
+
   // States cho bảo mật và UI
   const [isMenuStatsAuthenticated, setIsMenuStatsAuthenticated] = useState(false)
   const [showPasswordModal, setShowPasswordModal] = useState(false)
   const [password, setPassword] = useState('')
   const [passwordError, setPasswordError] = useState('')
   const [isMenuStatsVisible, setIsMenuStatsVisible] = useState(true)
-  
+
   const router = useRouter()
 
   // Lấy ngày hiện tại dạng yyyy-mm-dd theo múi giờ Việt Nam
@@ -77,11 +77,11 @@ export default function DashboardPage() {
   // Fetch thống kê từ API khi ngày thay đổi
   useEffect(() => {
     if (!selectedDate) return;
-    
+
     // Fetch thống kê chung
     setLoadingStats(true)
     setError(null)
-    fetch(`http://amnhactechcf.ddns.net:8000/api/v1/endpoints/dashboard/summary?date=${selectedDate}`)
+    fetch(`/api/v1/endpoints/dashboard/summary?date=${selectedDate}`)
       .then(res => {
         if (!res.ok) throw new Error('Lỗi API')
         return res.json()
@@ -96,7 +96,7 @@ export default function DashboardPage() {
     // Fetch thống kê thuốc lá
     setLoadingCigarettes(true)
     setErrorCigarettes(null)
-    fetch(`http://amnhactechcf.ddns.net:8000/api/v1/endpoints/dashboard/cigarettes?date=${selectedDate}`)
+    fetch(`/api/v1/endpoints/dashboard/cigarettes?date=${selectedDate}`)
       .then(res => {
         if (!res.ok) throw new Error('Lỗi API')
         return res.json()
@@ -114,14 +114,14 @@ export default function DashboardPage() {
     if (e) e.preventDefault() // Ngăn chặn form submit gây refresh trang
     setPasswordError('')
     try {
-      const response = await fetch('http://amnhactechcf.ddns.net:8000/api/v1/auth/admin-login', {
+      const response = await fetch('/api/v1/auth/admin-login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ password }),
       })
-      
+
       if (response.ok) {
         setIsMenuStatsAuthenticated(true)
         setShowPasswordModal(false)
@@ -139,7 +139,7 @@ export default function DashboardPage() {
     const today = new Date()
     let startDate = ''
     let endDate = ''
-    
+
     switch (filter) {
       case 'today':
         startDate = getToday()
@@ -181,7 +181,7 @@ export default function DashboardPage() {
         startDate = getToday()
         endDate = getToday()
     }
-    
+
     return { startDate, endDate }
   }
 
@@ -189,13 +189,13 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!isMenuStatsAuthenticated) return;
     if (menuStatsFilter === 'custom' && (!menuStatsStartDate || !menuStatsEndDate)) return;
-    
+
     setLoadingMenuStats(true)
     setErrorMenuStats(null)
-    
+
     const { startDate, endDate } = getDateRange(menuStatsFilter)
-    const endpoint = `http://amnhactechcf.ddns.net:8000/api/v1/endpoints/dashboard/menu-stats?start_date=${startDate}&end_date=${endDate}&filter_type=range`
-    
+    const endpoint = `/api/v1/endpoints/dashboard/menu-stats?start_date=${startDate}&end_date=${endDate}&filter_type=range`
+
     fetch(endpoint)
       .then(res => {
         if (!res.ok) throw new Error('Lỗi API')
@@ -211,7 +211,7 @@ export default function DashboardPage() {
 
   const handlePrintShiftReport = async (shift: string) => {
     try {
-      const response = await fetch(`http://amnhactechcf.ddns.net:8000/api/v1/endpoints/dashboard/shift-report?date=${selectedDate}&shift=${shift}`)
+      const response = await fetch(`/api/v1/endpoints/dashboard/shift-report?date=${selectedDate}&shift=${shift}`)
       if (!response.ok) throw new Error('Lỗi khi lấy dữ liệu')
       const data = await response.json()
 
@@ -291,7 +291,7 @@ export default function DashboardPage() {
                 </span>
               </div>
               <div className="relative date-picker-container w-full sm:w-auto">
-                <div 
+                <div
                   className="bg-white/10 rounded-lg px-3 sm:px-4 py-2 cursor-pointer hover:bg-white/20 transition-colors w-full sm:w-auto"
                   onClick={() => setShowDatePicker(!showDatePicker)}
                 >
@@ -326,7 +326,7 @@ export default function DashboardPage() {
                   </div>
                 )}
               </div>
-              <button 
+              <button
                 onClick={() => router.push('/functions')}
                 className="bg-white/10 hover:bg-white/20 rounded-full p-2 sm:p-3 text-white transition-colors self-end sm:self-auto"
                 title="Về trang chủ"
@@ -459,7 +459,7 @@ export default function DashboardPage() {
               <FaUtensils className="text-primary-600 mr-2" />
               Thống kê món bán được
             </h2>
-            
+
             {/* Bộ lọc thời gian */}
             <div className="mb-6 space-y-4">
               <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
@@ -485,18 +485,17 @@ export default function DashboardPage() {
                           setMenuStatsFilter(filter.key as any)
                         }
                       }}
-                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        menuStatsFilter === filter.key && isMenuStatsAuthenticated
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${menuStatsFilter === filter.key && isMenuStatsAuthenticated
                           ? 'bg-primary-600 text-white'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
+                        }`}
                     >
                       {filter.label}
                     </button>
-                   ))}
-                  </div>
+                  ))}
+                </div>
               </div>
-              
+
               {/* Hiển thị khoảng thời gian được chọn */}
               {menuStatsFilter !== 'custom' && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
@@ -511,7 +510,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
               )}
-              
+
               {/* Chọn khoảng thời gian tùy chỉnh */}
               {menuStatsFilter === 'custom' && (
                 <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-3">
@@ -625,7 +624,7 @@ export default function DashboardPage() {
                 <span className="text-primary-600 font-semibold text-sm">Đang tải dữ liệu...</span>
               </div>
             )}
-            
+
             {isMenuStatsAuthenticated && errorMenuStats && (
               <div className="bg-red-100 text-red-700 rounded-lg px-4 py-3 mb-4 text-center font-semibold text-sm">
                 {errorMenuStats}
@@ -668,31 +667,31 @@ export default function DashboardPage() {
                 {menuStats.items && menuStats.items.length > 0 && isMenuStatsVisible && (
                   <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
-                       <thead className="bg-gray-50">
-                         <tr>
-                           <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                             Tên món
-                           </th>
-                           <th className="px-2 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                             Tổng SL
-                           </th>
-                           <th className="px-2 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
-                             Ca sáng
-                           </th>
-                           <th className="px-2 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
-                             Ca chiều
-                           </th>
-                           <th className="px-2 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
-                             Ca tối
-                           </th>
-                           <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                             Doanh thu
-                           </th>
-                           <th className="px-2 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
-                             Tỷ lệ
-                           </th>
-                         </tr>
-                       </thead>
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Tên món
+                          </th>
+                          <th className="px-2 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Tổng SL
+                          </th>
+                          <th className="px-2 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
+                            Ca sáng
+                          </th>
+                          <th className="px-2 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
+                            Ca chiều
+                          </th>
+                          <th className="px-2 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
+                            Ca tối
+                          </th>
+                          <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Doanh thu
+                          </th>
+                          <th className="px-2 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                            Tỷ lệ
+                          </th>
+                        </tr>
+                      </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
                         {menuStats.items.map((item: any, index: number) => (
                           <tr key={index} className="hover:bg-gray-50">
@@ -723,8 +722,8 @@ export default function DashboardPage() {
                               <div className="flex items-center">
                                 <div className="text-sm text-gray-900 mr-2">{item.percentage}%</div>
                                 <div className="w-16 bg-gray-200 rounded-full h-2">
-                                  <div 
-                                    className="bg-primary-600 h-2 rounded-full" 
+                                  <div
+                                    className="bg-primary-600 h-2 rounded-full"
                                     style={{ width: `${item.percentage}%` }}
                                   ></div>
                                 </div>

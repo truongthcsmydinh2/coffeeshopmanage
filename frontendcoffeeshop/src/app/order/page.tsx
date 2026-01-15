@@ -88,7 +88,7 @@ export default function OrderPage() {
   const checkCurrentShift = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch('http://192.168.99.166:8000/api/shifts/current')
+      const response = await fetch('/api/shifts/current')
       
       if (response.ok) {
         const data = await response.json()
@@ -117,7 +117,7 @@ export default function OrderPage() {
 
   const checkActiveShifts = async () => {
     try {
-      const response = await fetch('http://192.168.99.166:8000/api/shifts/active')
+      const response = await fetch('/api/shifts/active')
       
       if (response.ok) {
         const data = await response.json()
@@ -153,7 +153,7 @@ export default function OrderPage() {
     try {
       console.log('Gửi yêu cầu mở ca làm việc:', data)
       
-      const response = await fetch('http://192.168.99.166:8000/api/shifts/', {
+      const response = await fetch('/api/shifts/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -199,7 +199,7 @@ export default function OrderPage() {
     try {
       console.log('Gửi yêu cầu cập nhật ca làm việc:', data)
       
-      const response = await fetch(`http://192.168.99.166:8000/api/shifts/${currentShift.id}`, {
+      const response = await fetch(`/api/shifts/${currentShift.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -243,7 +243,7 @@ export default function OrderPage() {
     try {
       console.log('Gửi yêu cầu đóng ca làm việc:', currentShift.id)
       
-      const response = await fetch(`http://192.168.99.166:8000/api/shifts/${currentShift.id}/close`, {
+      const response = await fetch(`/api/shifts/${currentShift.id}/close`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -272,7 +272,7 @@ export default function OrderPage() {
   const fetchMenuItems = async () => {
     setLoadingMenu(true)
     try {
-      const response = await fetch('http://192.168.99.166:8000/api/menu-items/')
+      const response = await fetch('/api/menu-items/')
       if (!response.ok) throw new Error('Không thể lấy dữ liệu món')
       const data = await response.json()
       setMenuItems(data)

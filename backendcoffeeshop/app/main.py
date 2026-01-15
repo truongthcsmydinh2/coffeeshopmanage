@@ -34,6 +34,7 @@ import requests
 from app.api.v1.endpoints.dashboard import router as dashboard_router
 from starlette.websockets import WebSocketState
 from app.api.v1.endpoints.printer_manager import printer_manager
+# Removed ProxyHeadersMiddleware - it was causing SSL errors in redirect URLs
 
 load_dotenv()
 
@@ -42,8 +43,11 @@ init_all()
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
-    openapi_url=f"{settings.API_V1_STR}/openapi.json"
+    openapi_url=f"{settings.API_V1_STR}/openapi.json",
+    redirect_slashes=False  # Disable auto-redirect to avoid internal URL exposure
 )
+
+# Note: ProxyHeadersMiddleware removed - was causing SSL errors
 
 # Mount static files for images
 app.mount("/image", StaticFiles(directory="/app/image"), name="image")
@@ -111,7 +115,7 @@ manager = ConnectionManager()
 # Cấu hình CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://192.168.99.166:3000", "http://192.168.99.166:3001", "http://amnhactechcf.ddns.net:3000", "http://amnhactechcf.ddns.net:3001"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -44,7 +44,7 @@ export function LayoutSettings() {
   const fetchLayout = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch('http://192.168.99.166:8000/layouts/')
+      const response = await fetch('/layouts/')
       if (response.ok) {
         const data = await response.json()
         console.log('Dữ liệu layout từ server:', data)
@@ -132,7 +132,7 @@ export function LayoutSettings() {
   // Hàm lấy danh sách bàn thực tế từ backend
   async function fetchTablesFromBackend() {
     try {
-      const res = await fetch('http://192.168.99.166:8000/tables/');
+      const res = await fetch('/tables/');
       if (!res.ok) return [];
       return await res.json();
     } catch {
@@ -153,7 +153,7 @@ export function LayoutSettings() {
       // Kiểm tra xem có layout nào chưa
       let existingLayouts = [];
       try {
-        const checkResponse = await fetch('http://192.168.99.166:8000/layouts/')
+        const checkResponse = await fetch('/layouts/')
         if (checkResponse.ok) {
           existingLayouts = await checkResponse.json()
         }
@@ -176,7 +176,7 @@ export function LayoutSettings() {
         let response;
         if (existingLayouts.length > 0) {
           // Cập nhật layout hiện có
-          response = await fetch(`http://192.168.99.166:8000/layouts/${existingLayouts[0].id}`, {
+          response = await fetch(`/layouts/${existingLayouts[0].id}`, {
             method: 'PUT',
             headers: {
               'Content-Type': 'application/json',
@@ -185,7 +185,7 @@ export function LayoutSettings() {
           })
         } else {
           // Tạo layout mới
-          response = await fetch('http://192.168.99.166:8000/layouts/', {
+          response = await fetch('/layouts/', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -514,7 +514,7 @@ export function LayoutSettings() {
       const tableData: any = { ...table };
       delete tableData.area;
       delete tableData.id;
-      const res = await fetch('http://192.168.99.166:8000/tables/', {
+      const res = await fetch('/tables/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -540,7 +540,7 @@ export function LayoutSettings() {
   async function updateTableAPI(table: Table) {
     try {
       const { area, ...tableData } = table as any; // ép kiểu any để tránh lỗi linter
-      const res = await fetch(`http://192.168.99.166:8000/tables/${tableData.id}`, {
+      const res = await fetch(`/tables/${tableData.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -560,7 +560,7 @@ export function LayoutSettings() {
   // Hàm gọi API xóa bàn
   async function deleteTableAPI(id: string) {
     try {
-      const res = await fetch(`http://192.168.99.166:8000/tables/${id}`, {
+      const res = await fetch(`/tables/${id}`, {
         method: 'DELETE',
       })
       if (!res.ok) throw new Error('Không thể xóa bàn trên backend')

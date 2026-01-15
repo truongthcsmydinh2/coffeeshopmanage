@@ -29,7 +29,7 @@ export default function TablePopup({ table, onClose, onRefresh }: TablePopupProp
     // Lấy danh sách bàn trống
     const fetchAvailableTables = async () => {
       try {
-        const response = await fetch('http://192.168.99.166:8000/api/tables/?status=available')
+        const response = await fetch('/api/tables/?status=available')
         const data = await response.json()
         if (response.ok) {
           setAvailableTables(data)
@@ -56,7 +56,7 @@ export default function TablePopup({ table, onClose, onRefresh }: TablePopupProp
     }
 
     try {
-      const response = await fetch(`http://192.168.99.166:8000/api/v1/orders/${table.current_order.id}/transfer-table`, {
+      const response = await fetch(`/api/v1/orders/${table.current_order.id}/transfer-table`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

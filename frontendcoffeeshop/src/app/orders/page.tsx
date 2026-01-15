@@ -35,7 +35,7 @@ export default function OrdersPage() {
       const dateStr = selectedDate ? format(selectedDate, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd");
       console.log("Fetching orders for date:", dateStr);
       
-      const response = await fetch(`http://192.168.99.166:8000/api/v1/complete-orders/?date=${dateStr}`, {
+      const response = await fetch(`/api/v1/complete-orders/?date=${dateStr}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

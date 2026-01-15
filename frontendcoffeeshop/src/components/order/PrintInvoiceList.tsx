@@ -60,7 +60,7 @@ export function PrintInvoiceList() {
   const fetchOrders = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch(`http://192.168.99.166:8000/api/v1/complete-orders/?date=${selectedDate}`)
+      const response = await fetch(`/api/v1/complete-orders/?date=${selectedDate}`)
       if (response.ok) {
         const data = await response.json()
         setOrders(data)
@@ -136,7 +136,7 @@ export function PrintInvoiceList() {
 
     try {
       setIsPrintingCombined(true)
-      const response = await fetch(`http://192.168.99.166:8000/api/v1/orders/print-combined-orders`, {
+      const response = await fetch(`/api/v1/orders/print-combined-orders`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -169,7 +169,7 @@ export function PrintInvoiceList() {
   const handlePrintInvoice = async (orderId: number) => {
     try {
       setPrintingOrderId(orderId)
-      const response = await fetch(`http://192.168.99.166:8000/api/v1/orders/print-order?order_id=${orderId}`, {
+      const response = await fetch(`/api/v1/orders/print-order?order_id=${orderId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

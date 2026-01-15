@@ -10,7 +10,7 @@ export default function CreateOrderPage() {
     try {
       console.log('Dữ liệu order gửi đi:', orderData)
       // Trong trường hợp thực tế, đây sẽ là gọi API để tạo order
-      // const response = await fetch('http://192.168.99.166:8000/api/orders', {
+      // const response = await fetch('/api/orders', {
       //   method: 'POST',
       //   headers: {
       //     'Content-Type': 'application/json',

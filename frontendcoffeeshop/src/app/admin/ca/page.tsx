@@ -45,7 +45,7 @@ export default function ShiftManagementPage() {
 
     const fetchShifts = async () => {
         try {
-            const response = await fetch('http://192.168.99.166:8000/api/shifts/get-all?limit=1000')
+            const response = await fetch('/api/shifts/get-all?limit=1000')
             if (response.ok) {
                 const data = await response.json()
                 setShifts(data || [])
@@ -59,7 +59,7 @@ export default function ShiftManagementPage() {
 
     const fetchStaff = async () => {
         try {
-            const response = await fetch('http://192.168.99.166:8000/api/staff/')
+            const response = await fetch('/api/staff/')
             if (response.ok) {
                 const data = await response.json()
                 setStaffList(data || [])
@@ -79,7 +79,7 @@ export default function ShiftManagementPage() {
         if (!confirm('Bạn có chắc chắn muốn xóa ca làm việc này?')) return
 
         try {
-            const response = await fetch(`http://192.168.99.166:8000/api/shifts/${shiftId}`, {
+            const response = await fetch(`/api/shifts/${shiftId}`, {
                 method: 'DELETE',
             })
 
@@ -103,7 +103,7 @@ export default function ShiftManagementPage() {
         if (!editingShift) return
 
         try {
-            const response = await fetch(`http://192.168.99.166:8000/api/shifts/update/${editingShift.id}`, {
+            const response = await fetch(`/api/shifts/update/${editingShift.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

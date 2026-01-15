@@ -57,7 +57,7 @@ const AdminPage: React.FC = () => {
   const fetchOrders = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(`http://amnhactechcf.ddns.net:8000/api/v1/complete-orders/?date=${selectedDate}`);
+      const response = await fetch(`/api/v1/complete-orders/?date=${selectedDate}`);
       if (response.ok) {
         const data = await response.json();
         setOrders(data);
@@ -85,7 +85,7 @@ const AdminPage: React.FC = () => {
         // Xóa từng order_item
         for (const item of order.items) {
           try {
-            const res = await fetch(`http://amnhactechcf.ddns.net:8000/order-items/${item.id}`, {
+            const res = await fetch(`/order-items/${item.id}`, {
               method: 'DELETE',
               headers: {
                 'Accept': 'application/json',
@@ -110,7 +110,7 @@ const AdminPage: React.FC = () => {
         }
       }
       // Sau khi xóa hết order_items, xóa order
-      const response = await fetch(`http://amnhactechcf.ddns.net:8000/orders/${orderId}`, {
+      const response = await fetch(`/orders/${orderId}`, {
         method: 'DELETE',
       });
 
@@ -183,7 +183,7 @@ const AdminPage: React.FC = () => {
     <div className="min-h-screen bg-gray-50 p-1 sm:p-4">
       <div className="max-w-7xl mx-auto">
         <h1 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-6 px-2 sm:px-0">Trang Quản Trị</h1>
-        
+
         <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl overflow-hidden mb-3 sm:mb-8">
           <div className="p-4 sm:p-6 border-b border-gray-200">
             <h2 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">Quản lý Order</h2>
@@ -241,7 +241,7 @@ const AdminPage: React.FC = () => {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {orders.map((order) => (
                     <React.Fragment key={order.id}>
-                      <tr 
+                      <tr
                         className="hover:bg-gray-50 cursor-pointer transition-colors duration-200"
                         onClick={() => toggleOrderDetails(order.id)}
                       >
@@ -279,23 +279,22 @@ const AdminPage: React.FC = () => {
                         </td>
                         <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap hidden lg:table-cell">
                           <span
-                            className={`px-3 sm:px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full ${
-                              order.status === 'pending'
+                            className={`px-3 sm:px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full ${order.status === 'pending'
                                 ? 'bg-yellow-100 text-yellow-800'
                                 : order.status === 'active'
-                                ? 'bg-green-100 text-green-800'
-                                : order.status === 'completed'
-                                ? 'bg-blue-100 text-blue-800'
-                                : 'bg-red-100 text-red-800'
-                            }`}
+                                  ? 'bg-green-100 text-green-800'
+                                  : order.status === 'completed'
+                                    ? 'bg-blue-100 text-blue-800'
+                                    : 'bg-red-100 text-red-800'
+                              }`}
                           >
                             {order.status === 'pending'
                               ? 'Chờ xử lý'
                               : order.status === 'active'
-                              ? 'Đang phục vụ'
-                              : order.status === 'completed'
-                              ? 'Hoàn thành'
-                              : 'Đã hủy'}
+                                ? 'Đang phục vụ'
+                                : order.status === 'completed'
+                                  ? 'Hoàn thành'
+                                  : 'Đã hủy'}
                           </span>
                         </td>
                         <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm text-gray-500" onClick={(e) => e.stopPropagation()}>
@@ -322,8 +321,8 @@ const AdminPage: React.FC = () => {
                               <h4 className="text-lg sm:text-lg font-semibold text-gray-900">Chi tiết đồ uống:</h4>
                               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-4">
                                 {order.items.map((item) => (
-                                  <div 
-                                    key={item.id} 
+                                  <div
+                                    key={item.id}
                                     className="bg-white p-4 sm:p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200"
                                   >
                                     <p className="font-bold text-gray-900 mb-3 text-base sm:text-base">{item.name}</p>

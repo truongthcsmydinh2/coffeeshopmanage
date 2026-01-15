@@ -13,7 +13,7 @@ export const TableGrid: React.FC<TableGridProps> = ({ onTableSelect }) => {
     React.useEffect(() => {
         const fetchTables = async () => {
             try {
-                const response = await fetch('http://192.168.99.166:8000/api/v1/tables/');
+                const response = await fetch('/api/v1/tables/');
                 const data = await response.json();
                 setTables(data);
                 setLoading(false);

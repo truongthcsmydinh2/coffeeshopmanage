@@ -59,7 +59,7 @@ export default function AllOrdersPage() {
   const fetchOrders = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch(`http://192.168.99.166:8000/api/v1/complete-orders/?date=${selectedDate}`)
+      const response = await fetch(`/api/v1/complete-orders/?date=${selectedDate}`)
       if (response.ok) {
         const data = await response.json()
         setOrders(data)

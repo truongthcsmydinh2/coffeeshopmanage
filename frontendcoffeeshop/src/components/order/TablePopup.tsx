@@ -81,7 +81,7 @@ export function TablePopup({ table, onClose, onStatusChange }: TablePopupProps) 
       toast.error('Vui lòng chọn bàn mới!')
       return
     }
-    fetch(`http://192.168.99.166:8000/api/v1/orders/${selectedOrderId}/transfer-table`, {
+    fetch(`/api/v1/orders/${selectedOrderId}/transfer-table`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -132,7 +132,7 @@ export function TablePopup({ table, onClose, onStatusChange }: TablePopupProps) 
         
         const note = prompt('Nhập ghi chú (tùy chọn):')
         
-        fetch(`http://192.168.99.166:8000/api/v1/orders/${orderId}/transfer-table`, {
+        fetch(`/api/v1/orders/${orderId}/transfer-table`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -194,7 +194,7 @@ export function TablePopup({ table, onClose, onStatusChange }: TablePopupProps) 
   const handleConfirmMerge = async () => {
     setIsMerging(true)
     try {
-      const res = await fetch('http://192.168.99.166:8000/api/orders/merge', {
+      const res = await fetch('/api/orders/merge', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ order_ids: selectedMergeOrders.map(Number) })
@@ -221,7 +221,7 @@ export function TablePopup({ table, onClose, onStatusChange }: TablePopupProps) 
     setItemsToSplit([])
     // Lấy chi tiết order
     try {
-      const res = await fetch(`http://192.168.99.166:8000/api/v1/orders/${order.id}/`)
+      const res = await fetch(`/api/v1/orders/${order.id}/`)
       if (!res.ok) throw new Error('Không thể lấy chi tiết order')
       const data = await res.json()
       // data.items là danh sách món
@@ -284,12 +284,12 @@ export function TablePopup({ table, onClose, onStatusChange }: TablePopupProps) 
         }))
       }
       // Lấy lại chi tiết order để lấy staff_id, shift_id
-      const orderRes = await fetch(`http://192.168.99.166:8000/api/v1/orders/${selectedOrder.id}/`)
+      const orderRes = await fetch(`/api/v1/orders/${selectedOrder.id}/`)
       const orderData = await orderRes.json()
       splitOrderData.staff_id = orderData.staff_id
       splitOrderData.shift_id = orderData.shift_id
       // Tạo order mới
-      const response = await fetch('http://192.168.99.166:8000/api/v1/orders/', {
+      const response = await fetch('/api/v1/orders/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -317,7 +317,7 @@ export function TablePopup({ table, onClose, onStatusChange }: TablePopupProps) 
           total_price: item.unit_price * (item.quantity - splitItem.quantity)
         }
       }).filter((item): item is OrderDetailItem => item !== null)
-      await fetch(`http://192.168.99.166:8000/api/v1/orders/${selectedOrder.id}/`, {
+      await fetch(`/api/v1/orders/${selectedOrder.id}/`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

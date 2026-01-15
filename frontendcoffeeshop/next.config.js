@@ -26,9 +26,24 @@ const nextConfig = {
   },
   async rewrites() {
     return [
+      // /api/* is handled by src/app/api/[...path]/route.ts
+      // /orders/* and /order-items/* use rewrites because they have page.tsx files
       {
-        source: '/api/:path*',
-        destination: `${process.env.API_URL || 'http://192.168.99.166:8000'}/api/:path*`,
+        source: '/orders/:path*',
+        destination: `${process.env.API_URL || 'http://backend:8000'}/orders/:path*`,
+      },
+      // Proxy image requests to the backend
+      {
+        source: '/image/:path*',
+        destination: `${process.env.API_URL || 'http://backend:8000'}/image/:path*`,
+      },
+      {
+        source: '/order-items/:path*',
+        destination: `${process.env.API_URL || 'http://backend:8000'}/order-items/:path*`,
+      },
+      {
+        source: '/ws/:path*',
+        destination: `${process.env.API_URL || 'http://backend:8000'}/ws/:path*`,
       },
     ]
   },

@@ -44,7 +44,7 @@ export function ShiftModal({ isOpen, onClose, onOpenShift }: ShiftModalProps) {
     try {
       setIsLoading(true)
       // URL API đã được cấu hình đúng trên backend
-      const response = await fetch('http://192.168.99.166:8000/api/staff/by-role/1', {
+      const response = await fetch('/api/staff/by-role/1', {
         method: 'GET',
         headers: {
           'Accept': 'application/json'

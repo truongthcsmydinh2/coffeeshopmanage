@@ -33,7 +33,7 @@ export default function EditOrderPage({ params }: { params: { orderId: string } 
   useEffect(() => {
     const fetchOrderData = async () => {
       try {
-        const response = await fetch(`http://192.168.99.166:8000/api/orders/${params.orderId}`)
+        const response = await fetch(`/api/orders/${params.orderId}`)
         if (response.ok) {
           const data = await response.json()
           console.log('Data từ API:', data);
@@ -117,7 +117,7 @@ export default function EditOrderPage({ params }: { params: { orderId: string } 
         }))
       }
       console.log('Payload gửi lên backend:', payload);
-      const response = await fetch(`http://192.168.99.166:8000/orders/${params.orderId}`, {
+      const response = await fetch(`/orders/${params.orderId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

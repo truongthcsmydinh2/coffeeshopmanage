@@ -49,15 +49,15 @@ export const TableGrid: React.FC<TableGridProps> = ({ onTableClick, selectMode =
   const fetchTableStatuses = async () => {
     try {
       console.log('Fetching table statuses...');
-      // Luôn sử dụng IP local cho API
-      const apiUrl = 'http://192.168.99.166:8000/orders/';
+      // Sử dụng API proxy route
+      const apiUrl = '/api/v1/orders/';
       console.log('API URL:', apiUrl);
       const response = await fetch(apiUrl)
       const data = await response.json()
       console.log('Raw orders data:', data);
-      
+
       // Lọc các order có status là active hoặc pending
-      const activeOrders = data.filter((order: any) => 
+      const activeOrders = data.filter((order: any) =>
         order.status === 'active' || order.status === 'pending'
       )
       console.log('Filtered active orders:', activeOrders);
@@ -82,8 +82,8 @@ export const TableGrid: React.FC<TableGridProps> = ({ onTableClick, selectMode =
     // Load dữ liệu lần đầu
     fetchTableStatuses()
 
-    // Load lại dữ liệu mỗi 5 giây
-    const interval = setInterval(fetchTableStatuses, 1000)
+    // Load lại dữ liệu mỗi 30 giây
+    const interval = setInterval(fetchTableStatuses, 30000)
 
     // Cleanup khi component unmount
     return () => {
@@ -103,11 +103,11 @@ export const TableGrid: React.FC<TableGridProps> = ({ onTableClick, selectMode =
   const getTableColor = (tableId: number) => {
     const orders = getTableOrders(tableId)
     if (orders.length === 0) return '#38bbfc' // blue for available
-    
+
     // Nếu có order pending thì ưu tiên hiển thị màu pending
     const hasPending = orders.some(order => order.status === 'pending')
     if (hasPending) return '#ffa500' // Orange for pending
-    
+
     // Nếu không có pending thì hiển thị màu active
     return '#ff0000' // Red for active
   }
@@ -116,7 +116,7 @@ export const TableGrid: React.FC<TableGridProps> = ({ onTableClick, selectMode =
     // Đầu tiên tìm trong mảng tables được import
     const tableFromConfig = tables.find(t => t.id === tableId);
     if (tableFromConfig) return tableFromConfig.name;
-    
+
     // Nếu không tìm thấy, tìm trong mảng tables được định nghĩa trong renderGrid
     const tableFromRenderGrid = renderGridTables.find(t => t.id === tableId);
     return tableFromRenderGrid?.name || `Bàn ${tableId}`;
@@ -198,7 +198,7 @@ export const TableGrid: React.FC<TableGridProps> = ({ onTableClick, selectMode =
 
   const renderGrid = () => {
     const gridLines: JSX.Element[] = [];
-    
+
     // Sử dụng mảng tables đã định nghĩa ở trên
     renderGridTables.forEach(table => {
       let tableColor = getTableColor(table.id)
@@ -207,9 +207,9 @@ export const TableGrid: React.FC<TableGridProps> = ({ onTableClick, selectMode =
       }
       const tableName = table.name || getTableName(table.id)
       const orders = getTableOrders(table.id)
-      
+
       gridLines.push(
-        <g 
+        <g
           key={`table-${table.id}`}
           onClick={() => handleTableClick(table)}
           style={{ cursor: 'pointer' }}
@@ -225,8 +225,8 @@ export const TableGrid: React.FC<TableGridProps> = ({ onTableClick, selectMode =
             strokeWidth={2}
           />
           <text
-            x={table.x + (table.width || 80)/2}
-            y={table.y + (table.height || 80)/2}
+            x={table.x + (table.width || 80) / 2}
+            y={table.y + (table.height || 80) / 2}
             textAnchor="middle"
             dominantBaseline="middle"
             fill="white"

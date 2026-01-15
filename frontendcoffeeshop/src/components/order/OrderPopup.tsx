@@ -57,12 +57,12 @@ interface MenuItemImageProps {
 function MenuItemImage({ code, alt, ...props }: MenuItemImageProps) {
   const extensions = ['jpg', 'png', 'jpeg', 'webp'];
   const [imgIndex, setImgIndex] = useState(0);
-  const [imgSrc, setImgSrc] = useState(`http://192.168.99.166:8000/image/images/${code}.${extensions[0]}`);
+  const [imgSrc, setImgSrc] = useState(`/image/images/${code}.${extensions[0]}`);
   const handleError = () => {
     if (imgIndex < extensions.length - 1) {
       const nextIndex = imgIndex + 1;
       setImgIndex(nextIndex);
-      setImgSrc(`http://192.168.99.166:8000/image/images/${code}.${extensions[nextIndex]}`);
+      setImgSrc(`/image/images/${code}.${extensions[nextIndex]}`);
     } else {
       setImgSrc('/default-image.png');
     }
@@ -94,7 +94,7 @@ export function OrderPopup({ tableId, tableName, onClose, onOrderCreated }: Orde
 
     setIsLoading(true)
     try {
-      const groupsRes = await fetch('http://192.168.99.166:8000/api/menu-groups/')
+      const groupsRes = await fetch('/api/menu-groups/')
       const groupsData = await groupsRes.json()
 
       if (groupsRes.ok) {
@@ -109,7 +109,7 @@ export function OrderPopup({ tableId, tableName, onClose, onOrderCreated }: Orde
         setMenuGroups([])
       }
 
-      const itemsRes = await fetch('http://192.168.99.166:8000/api/menu-items/?limit=1000')
+      const itemsRes = await fetch('/api/menu-items/?limit=1000')
       const itemsData = await itemsRes.json()
 
       if (itemsRes.ok) {
@@ -132,7 +132,7 @@ export function OrderPopup({ tableId, tableName, onClose, onOrderCreated }: Orde
 
   const fetchCurrentShift = useCallback(async () => {
     try {
-      const response = await fetch('http://192.168.99.166:8000/api/shifts/current', {
+      const response = await fetch('/api/shifts/current', {
         credentials: 'include'
       })
       if (!response.ok) {
@@ -273,7 +273,7 @@ export function OrderPopup({ tableId, tableName, onClose, onOrderCreated }: Orde
 
       console.log('Sending order data:', orderData)
 
-      const response = await fetch('http://192.168.99.166:8000/api/v1/orders/', {
+      const response = await fetch('/api/v1/orders/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -366,7 +366,7 @@ export function OrderPopup({ tableId, tableName, onClose, onOrderCreated }: Orde
 
       console.log('Sending split order data:', splitOrderData)
 
-      const response = await fetch('http://192.168.99.166:8000/api/v1/orders/', {
+      const response = await fetch('/api/v1/orders/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
