@@ -1,0 +1,12 @@
+=== COFFEE SHOP DATABASE BACKUP SUMMARY ===
+
+Backup Date: Thu Jan 15 17:24:57 UTC 2026
+Database: coffeeshop
+PostgreSQL Version: 15
+
+=== BACKUP FILES ===
+-rw-r--r-- 1 ubuntu ubuntu 968K Jan 15 17:22 /home/ubuntu/coffeeshopmanage/backups/coffeeshop_backup_20260115_172309.dump
+-rw-r--r-- 1 ubuntu ubuntu 4.6M Jan 15 17:23 /home/ubuntu/coffeeshopmanage/backups/coffeeshop_backup_20260115_172316.sql
+
+=== RESTORE COMMAND ===
+docker exec coffeeshopmanage-db-1 pg_restore -U postgres -d coffeeshop --clean --if-exists /tmp/restore.dump
